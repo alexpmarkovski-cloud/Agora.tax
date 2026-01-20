@@ -1,0 +1,44 @@
+{% extends 'api/base.html' %}
+
+{% block content %}
+<h1>Referrals</h1>
+<table>
+   <thead>
+      <tr>
+         <th>ID</th>
+         <th>CPA</th>
+         <th>Client Email</th>
+         <th>Offer</th>
+         <th>Status</th>
+         <th>Gen Date</th>
+         <th>Action</th>
+      </tr>
+   </thead>
+   <tbody>
+      {% for referral in referrals %}
+      <tr>
+         <td>{{ referral.id }}</td>
+         <td>{{ referral.cpa.name }}</td>
+         <td>{{ referral.client_email }}</td>
+         <td>{{ referral.offer.name }}</td>
+         <td>{{ referral.status }}</td>
+         <td>{{ referral.gen_date }}</td>
+         <td>
+            {% if referral.status != 'CONVERTED' %}
+            <form method="post" action="{% url 'update_referral_status' referral.id %}" style="margin: 0;">
+               {% csrf_token %}
+               <button type="submit" style="padding: 5px 10px; font-size: 12px;">Mark Converted</button>
+            </form>
+            {% else %}
+            Converted
+            {% endif %}
+         </td>
+      </tr>
+      {% empty %}
+      <tr>
+         <td colspan="7">No referrals found.</td>
+      </tr>
+      {% endfor %}
+   </tbody>
+</table>
+{% endblock %}
