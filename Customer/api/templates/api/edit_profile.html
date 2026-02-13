@@ -1,0 +1,49 @@
+{% extends 'api/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+   <div class="col-md-6">
+      <!-- Profile Update Card -->
+      <div class="card shadow-sm mb-4">
+         <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">User Settings</h4>
+         </div>
+         <div class="card-body">
+            <form method="post">
+               {% csrf_token %}
+
+               {% for field in form %}
+               <div class="mb-3">
+                  <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+               </div>
+               {% endfor %}
+
+               <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">Save Changes</button>
+               </div>
+            </form>
+         </div>
+      </div>
+
+      <!-- Security Settings Card -->
+      <div class="card shadow-sm">
+         <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Security</h5>
+         </div>
+         <div class="card-body">
+            <div class="d-grid gap-2">
+               <a href="{% url 'account_change_password' %}" class="btn btn-outline-dark">Change Password</a>
+               <a href="{% url 'account_email' %}" class="btn btn-outline-dark">Manage Email</a>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+{% endblock %}

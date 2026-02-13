@@ -31,19 +31,29 @@ class Offer(models.Model):
     cpa_payout = models.DecimalField(max_digits=10, decimal_places=2) # What the CPA gets
     platform_fee = models.DecimalField(max_digits=10, decimal_places=2) # What You get
     
+    # Client Facing Details
+    client_bonus_summary = models.CharField(max_length=255, default="", help_text="e.g., '$300 Cash Bonus'")
+    client_requirements = models.TextField(default="", help_text="e.g., 'Must deposit $15k within 30 days.'")
+    application_link = models.URLField(blank=True, null=True, help_text="The direct link to the bank's application page.")
+
     is_active = models.BooleanField(default=True)
     terms_url = models.URLField(blank=True)
 
     def __str__(self):
         return f"{self.name} - ${self.cpa_payout}"
 
+from django.contrib.auth.models import User
+
 # 4. CPA Users (The Tax Pros)
 # Note: Later we will link this to Django's built-in User Authentication
 class CPAUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     company_name = models.CharField(max_length=255, blank=True)
+    company_name = models.CharField(max_length=255, blank=True)
     is_verified = models.BooleanField(default=False)
+    stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -61,6 +71,8 @@ class Referral(models.Model):
 
     cpa = models.ForeignKey(CPAUser, on_delete=models.CASCADE, related_name='referrals')
     offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True) # If offer is deleted, keep the referral history
+    # Link to Payout Batch
+    payout_batch = models.ForeignKey('PayoutBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
     
     # SNAPSHOT PRICING (The "Receipt")
     # We copy the price from the Offer to here when the referral is created.
@@ -102,3 +114,43 @@ class Transaction(models.Model):
     
     transaction_date = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=50, default='PROCESSING')
+
+# 7. Payout Batches (Monthly Groups)
+class PayoutBatch(models.Model):
+    STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('PROCESSING', 'Processing'),
+        ('PAID', 'Paid'),
+    ]
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='OPEN')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    reference_note = models.CharField(max_length=255, help_text="e.g. January 2026 Payouts")
+    
+    def __str__(self):
+        return f"Batch #{self.id} - {self.reference_note} ({self.status})"
+
+    def process_batch(self):
+        # Prevent double processing
+        if self.status == 'PAID':
+            return
+            
+        print(f"--- STARTING BATCH #{self.id} PROCESSING ---")
+        
+        for referral in self.referrals.all():
+            if referral.status == 'CONVERTED':
+                amount = referral.agreed_cpa_payout
+                cpa_stripe_id = referral.cpa.stripe_account_id or "NO_STRIPE_ID"
+                
+                # Placeholder Simulation
+                print(f"SIMULATION: Transferring ${amount} from [PLACEHOLDER_BANK_ID] to CPA {cpa_stripe_id}")
+                
+                # Update Referral Status
+                referral.status = 'PAID'
+                referral.save()
+        
+        # Update Batch Status
+        self.status = 'PAID'
+        self.save()
+        print(f"--- BATCH #{self.id} COMPLETED ---")

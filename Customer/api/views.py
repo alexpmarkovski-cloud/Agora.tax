@@ -1,7 +1,66 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+import stripe
 from .models import Referral, Offer, CPAUser
-from .forms import ReferralForm
+from .forms import ReferralForm, UserUpdateForm
 
+# Global Stripe Setup
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@login_required
+def onboard_cpa_stripe(request):
+    try:
+        # Get the CPA profile (assuming 1-to-1 link with User, but here we scan first())
+        # Ideally, we should link User to CPAUser. For now, we take request.user.cpauser if exists
+        cpa_user = getattr(request.user, 'cpauser', None)
+        
+        # Fallback for testing layouts if simple User isn't linked
+        if not cpa_user:
+             # Just for safety in dev: return error or grab first
+             return redirect('referral_list')
+
+        # Step A: Create Stripe Account if not exists
+        if not cpa_user.stripe_account_id:
+            account = stripe.Account.create(
+                type='express',
+                country='US',
+                email=cpa_user.email,
+                capabilities={
+                    'card_payments': {'requested': True},
+                    'transfers': {'requested': True},
+                },
+            )
+            cpa_user.stripe_account_id = account.id
+            cpa_user.save()
+        
+        # Step B: Create Account Link
+        account_link = stripe.AccountLink.create(
+            account=cpa_user.stripe_account_id,
+            refresh_url=request.build_absolute_uri(), # Retry this view
+            return_url=request.build_absolute_uri('/'), # Back to dashboard
+            type='account_onboarding',
+        )
+        
+        return redirect(account_link.url)
+        
+    except Exception as e:
+        # In prod, log this error
+        return render(request, 'api/referral_list.html', {'error': str(e)})
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('edit_profile')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    
+    return render(request, 'api/edit_profile.html', {'form': form})
+
+@login_required
 def create_referral(request):
     if request.method == 'POST':
         form = ReferralForm(request.POST)
@@ -11,16 +70,11 @@ def create_referral(request):
             if hasattr(request.user, 'cpauser'):
                 referral.cpa = request.user.cpauser
             else:
-                # Option B (The Safety Net): Just grab the first CPA in the database.
-                # This ensures the test works even if you aren't logged in correctly.
-                cpa_fallback = CPAUser.objects.first()
-                if not cpa_fallback:
-                    # If no CPAs exist at all, we can't save. return an error or crash gracefully.
-                    return render(request, 'api/create_referral.html', {
-                        'form': form, 
-                        'error': "No CPA Users exist! Please create one in the Admin Panel first."
-                    })
-                referral.cpa = cpa_fallback
+                return render(request, 'api/create_referral.html', {
+                    'form': form,
+                    'error': "Error: Your account is not linked to a CPA profile."
+                })
+            
             offer = referral.offer
             referral.agreed_cpa_payout = offer.cpa_payout
             referral.agreed_platform_fee = offer.platform_fee

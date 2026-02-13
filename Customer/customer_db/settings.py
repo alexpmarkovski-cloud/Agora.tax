@@ -128,6 +128,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+LOGIN_REDIRECT_URL = 'referral_list'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -137,5 +140,12 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+import os
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_replace_me')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_replace_me')
+
+# Placeholder for your future Business Bank Account ID (e.g., from Mercury/Relay)
+# usage: settings.AGORA_MAIN_BANK_ID
+AGORA_MAIN_BANK_ID = os.environ.get('AGORA_MAIN_BANK_ID', 'ba_test_placeholder_bank_account')

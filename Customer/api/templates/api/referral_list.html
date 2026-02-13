@@ -3,7 +3,12 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
    <h1>Referrals</h1>
-   <a href="{% url 'create_referral' %}" class="btn btn-primary">Create New Referral</a>
+   <div>
+      {% if user.cpauser and not user.cpauser.stripe_account_id %}
+      <a href="{% url 'onboard_cpa_stripe' %}" class="btn btn-warning me-2">Setup Payouts</a>
+      {% endif %}
+      <a href="{% url 'create_referral' %}" class="btn btn-primary">Create New Referral</a>
+   </div>
 </div>
 
 <div class="table-responsive">
