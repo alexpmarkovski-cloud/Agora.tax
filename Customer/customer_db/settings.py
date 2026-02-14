@@ -140,6 +140,12 @@ AUTHENTICATION_BACKENDS = [
 SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+# Allauth Settings
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_FORMS = {'signup': 'api.forms.CPASignupForm'}
+
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 import os

@@ -48,16 +48,18 @@ from django.contrib.auth.models import User
 # Note: Later we will link this to Django's built-in User Authentication
 class CPAUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
-    company_name = models.CharField(max_length=255, blank=True)
-    company_name = models.CharField(max_length=255, blank=True)
+    company_name = models.CharField(max_length=255) # Required now
+    license_number = models.CharField(max_length=50, help_text='CPA License Number')
+    license_state = models.CharField(max_length=2, help_text='State (e.g., NY)')
     is_verified = models.BooleanField(default=False)
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.first_name} {self.last_name}'
 
 # 5. Referrals (The "Order")
 # This is the most critical table. It snapshots the price.
@@ -86,7 +88,7 @@ class Referral(models.Model):
     conversion_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Referral #{self.id} by {self.cpa.name}"
+        return f"Referral #{self.id} by {self.cpa.first_name} {self.cpa.last_name}"
 
 # 6. Transactions (The Master Ledger)
 # Replaces separate "Tax Payment" and "Finance Payment" tables

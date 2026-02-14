@@ -22,9 +22,9 @@ class OfferAdmin(admin.ModelAdmin):
 
 @admin.register(CPAUser)
 class CPAUserAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'company_name', 'is_verified')
+    list_display = ('first_name', 'last_name', 'email', 'company_name', 'is_verified')
     list_filter = ('is_verified',)
-    search_fields = ('name', 'email', 'company_name')
+    search_fields = ('first_name', 'last_name', 'email', 'company_name')
 
 @admin.action(description='Create Payout Batch from Selected')
 def create_batch_from_referrals(modeladmin, request, queryset):
