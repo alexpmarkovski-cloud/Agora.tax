@@ -94,3 +94,19 @@ def update_referral_status(request, pk):
         referral.status = 'CONVERTED'
         referral.save()
     return redirect('referral_list')
+
+from django.contrib.admin.views.decorators import staff_member_required
+
+@staff_member_required
+def cpa_verifier(request):
+    unverified_cpas = CPAUser.objects.filter(is_verified=False).order_by('-created_at')
+    return render(request, 'api/cpa_verifier.html', {'unverified_cpas': unverified_cpas})
+
+@staff_member_required
+def approve_cpa(request, pk):
+    cpa = get_object_or_404(CPAUser, pk=pk)
+    if request.method == 'POST':
+        cpa.is_verified = True
+        cpa.save()
+    return redirect('cpa_verifier')
+

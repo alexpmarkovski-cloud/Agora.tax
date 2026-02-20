@@ -1,0 +1,54 @@
+{% extends 'api/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+   <div class="col">
+      <h2>CPA Verifier</h2>
+      <p class="text-muted">Approve unverified CPA users.</p>
+   </div>
+</div>
+
+<div class="card shadow-sm">
+   <div class="card-body">
+      {% if unverified_cpas %}
+      <div class="table-responsive">
+         <table class="table table-hover align-middle">
+            <thead class="table-light">
+               <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Company Name</th>
+                  <th>License Number</th>
+                  <th>State</th>
+                  <th>Registration Date</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for cpa in unverified_cpas %}
+               <tr>
+                  <td>{{ cpa.first_name }} {{ cpa.last_name }}</td>
+                  <td>{{ cpa.email }}</td>
+                  <td>{{ cpa.company_name }}</td>
+                  <td>{{ cpa.license_number }}</td>
+                  <td>{{ cpa.license_state }}</td>
+                  <td>{{ cpa.created_at|date:"M d, Y" }}</td>
+                  <td>
+                     <form method="post" action="{% url 'approve_cpa' cpa.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                     </form>
+                  </td>
+               </tr>
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+         <p class="text-muted mb-0">No unverified CPA users found.</p>
+      </div>
+      {% endif %}
+   </div>
+</div>
+{% endblock %}

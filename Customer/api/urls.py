@@ -7,4 +7,6 @@ urlpatterns = [
     path('payouts/setup/', views.onboard_cpa_stripe, name='onboard_cpa_stripe'),
     path('update-status/<int:pk>/', views.update_referral_status, name='update_referral_status'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('verifier/', views.cpa_verifier, name='cpa_verifier'),
+    path('verifier/approve/<int:pk>/', views.approve_cpa, name='approve_cpa'),
 ]
