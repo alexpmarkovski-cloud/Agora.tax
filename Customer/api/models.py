@@ -37,6 +37,7 @@ class Offer(models.Model):
     application_link = models.URLField(blank=True, null=True, help_text="The direct link to the bank's application page.")
 
     is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False, help_text="Display this offer on the storefront")
     terms_url = models.URLField(blank=True)
 
     def __str__(self):

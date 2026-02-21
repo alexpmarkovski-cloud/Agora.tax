@@ -110,3 +110,13 @@ def approve_cpa(request, pk):
         cpa.save()
     return redirect('cpa_verifier')
 
+@login_required
+def storefront(request):
+    featured_offers = Offer.objects.filter(is_active=True, is_featured=True)[:3]
+    return render(request, 'api/storefront.html', {'featured_offers': featured_offers})
+
+@login_required
+def offer_list(request):
+    offers = Offer.objects.filter(is_active=True).order_by('name')
+    return render(request, 'api/offer_list.html', {'offers': offers})
+

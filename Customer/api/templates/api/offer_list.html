@@ -1,0 +1,60 @@
+{% extends 'api/base.html' %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+   <div class="col-md-8">
+      <h1 class="display-5 fw-bold text-dark">All Recommended Products</h1>
+      <p class="lead text-muted">Browse the master list of all available offers for your clients.</p>
+   </div>
+   <div class="col-md-4 text-md-end">
+      <a href="{% url 'storefront' %}" class="btn btn-outline-secondary shadow-sm">
+         <i class="bi bi-arrow-left"></i> Back to Storefront
+      </a>
+   </div>
+</div>
+
+<div class="card shadow-sm border-0">
+   <div class="card-body p-0">
+      <div class="table-responsive">
+         <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+               <tr>
+                  <th class="ps-4">Company</th>
+                  <th>Product</th>
+                  <th>Offer Name</th>
+                  <th>Client Bonus</th>
+                  <th>Your Payout</th>
+                  <th class="text-end pe-4">Action</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for offer in offers %}
+               <tr>
+                  <td class="ps-4 fw-bold text-dark">{{ offer.product.company.name }}</td>
+                  <td>{{ offer.product.name }}</td>
+                  <td>
+                     {{ offer.name }}
+                     {% if offer.is_featured %}
+                     <span class="badge bg-primary ms-1">Featured</span>
+                     {% endif %}
+                  </td>
+                  <td>{{ offer.client_bonus_summary }}</td>
+                  <td class="text-success fw-bold">${{ offer.cpa_payout }}</td>
+                  <td class="text-end pe-4">
+                     <a href="{% url 'create_referral' %}?offer={{ offer.id }}"
+                        class="btn btn-sm btn-primary">Select</a>
+                  </td>
+               </tr>
+               {% empty %}
+               <tr>
+                  <td colspan="6" class="text-center py-5">
+                     <h5 class="text-muted mb-0">No active offers found.</h5>
+                  </td>
+               </tr>
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+   </div>
+</div>
+{% endblock %}

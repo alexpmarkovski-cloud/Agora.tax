@@ -18,7 +18,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'referral_list' %}">Agora</a>
+            <a class="navbar-brand" href="{% url 'storefront' %}">Agora</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -26,7 +26,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'referral_list' %}">Referrals</a>
+                        <a class="nav-link" href="{% url 'storefront' %}">Storefront</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'offer_list' %}">Offers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'referral_list' %}">My Referrals</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'create_referral' %}">Create New</a>
