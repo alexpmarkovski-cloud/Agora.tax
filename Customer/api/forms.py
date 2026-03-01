@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from allauth.account.forms import SignupForm
-from .models import Referral, Offer, CPAUser
+from .models import Referral, Offer, CPAUser, CPALicense
 
 class CPASignupForm(SignupForm):
     first_name = forms.CharField(max_length=30, label='First Name')
@@ -16,14 +16,19 @@ class CPASignupForm(SignupForm):
         
         # 2. Create the linked CPAUser
         # Note: Allauth handles saving the User model. We just add our extra data.
-        CPAUser.objects.create(
+        cpa = CPAUser.objects.create(
             user=user,
             email=user.email, # Allauth ensures email is collected
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
-            company_name=self.cleaned_data['company_name'],
-            license_number=self.cleaned_data['license_number'],
-            license_state=self.cleaned_data['license_state']
+            company_name=self.cleaned_data['company_name']
+        )
+        
+        # 3. Create the initial CPALicense
+        CPALicense.objects.create(
+            cpa=cpa,
+            state=self.cleaned_data['license_state'],
+            license_number=self.cleaned_data['license_number']
         )
         return user
 

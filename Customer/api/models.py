@@ -11,11 +11,21 @@ class FinancialCompany(models.Model):
     def __str__(self):
         return self.name
 
+class ProductCategory(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+        
+    class Meta:
+        verbose_name_plural = "Product Categories"
+
 # 2. Products (e.g., "High Yield Savings Account")
 class Product(models.Model):
     company = models.ForeignKey(FinancialCompany, on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
-    category = models.CharField(max_length=100) # e.g. 'IRA', 'Savings'
+    category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
     description = models.TextField(blank=True)
     
     def __str__(self):
@@ -53,14 +63,22 @@ class CPAUser(models.Model):
     last_name = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
     company_name = models.CharField(max_length=255) # Required now
-    license_number = models.CharField(max_length=50, help_text='CPA License Number')
-    license_state = models.CharField(max_length=2, help_text='State (e.g., NY)')
-    is_verified = models.BooleanField(default=False)
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
+
+class CPALicense(models.Model):
+    cpa = models.ForeignKey(CPAUser, on_delete=models.CASCADE, related_name='licenses')
+    state = models.CharField(max_length=2, help_text='State (e.g., NY)')
+    license_number = models.CharField(max_length=50, help_text='CPA License Number')
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.state} - {self.license_number}'
+        
 
 # 5. Referrals (The "Order")
 # This is the most critical table. It snapshots the price.

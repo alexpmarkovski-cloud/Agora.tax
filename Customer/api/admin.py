@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Sum
 from django.contrib import messages
-from .models import FinancialCompany, Product, Offer, CPAUser, Referral, Transaction, PayoutBatch
+from .models import FinancialCompany, Product, Offer, CPAUser, CPALicense, Referral, Transaction, PayoutBatch
 
 @admin.register(FinancialCompany)
 class FinancialCompanyAdmin(admin.ModelAdmin):
@@ -21,11 +21,15 @@ class OfferAdmin(admin.ModelAdmin):
     list_editable = ('is_active', 'is_featured')
     search_fields = ('name', 'product__name')
 
+class CPALicenseInline(admin.TabularInline):
+    model = CPALicense
+    extra = 0
+
 @admin.register(CPAUser)
 class CPAUserAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'email', 'company_name', 'is_verified')
-    list_filter = ('is_verified',)
+    list_display = ('first_name', 'last_name', 'email', 'company_name')
     search_fields = ('first_name', 'last_name', 'email', 'company_name')
+    inlines = [CPALicenseInline]
 
 @admin.action(description='Create Payout Batch from Selected')
 def create_batch_from_referrals(modeladmin, request, queryset):

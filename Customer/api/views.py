@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import stripe
-from .models import Referral, Offer, CPAUser
+from .models import Referral, Offer, CPAUser, ProductCategory
 from .forms import ReferralForm, UserUpdateForm
 
 # Global Stripe Setup
@@ -86,7 +86,20 @@ def create_referral(request):
 
 def referral_list(request):
     referrals = Referral.objects.all().order_by('-gen_date')
-    return render(request, 'api/referral_list.html', {'referrals': referrals})
+    
+    category_id = request.GET.get('category')
+    if category_id:
+        referrals = referrals.filter(offer__product__category_id=category_id)
+        
+    categories = ProductCategory.objects.all().order_by('name')
+    
+    selected_category_id = int(category_id) if category_id and category_id.isdigit() else None
+    
+    return render(request, 'api/referral_list.html', {
+        'referrals': referrals,
+        'categories': categories,
+        'selected_category_id': selected_category_id
+    })
 
 def update_referral_status(request, pk):
     referral = get_object_or_404(Referral, pk=pk)
