@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import stripe
-from .models import Referral, Offer, CPAUser, ProductCategory
-from .forms import ReferralForm, UserUpdateForm
+from .models import Referral, Offer, CPAUser, ProductCategory, CPALicense
+from .forms import ReferralForm, UserUpdateForm, CPALicenseForm
 
 # Global Stripe Setup
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -50,15 +50,35 @@ def onboard_cpa_stripe(request):
 
 @login_required
 def edit_profile(request):
+    cpa = getattr(request.user, 'cpauser', None)
+    
     if request.method == 'POST':
-        form = UserUpdateForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('edit_profile')
+        if 'update_profile' in request.POST:
+            form = UserUpdateForm(request.POST, instance=request.user)
+            license_form = CPALicenseForm()
+            if form.is_valid():
+                form.save()
+                return redirect('edit_profile')
+        elif 'add_license' in request.POST and cpa:
+            form = UserUpdateForm(instance=request.user)
+            license_form = CPALicenseForm(request.POST)
+            if license_form.is_valid():
+                license = license_form.save(commit=False)
+                license.cpa = cpa
+                license.save()
+                return redirect('edit_profile')
     else:
         form = UserUpdateForm(instance=request.user)
+        license_form = CPALicenseForm()
     
-    return render(request, 'api/edit_profile.html', {'form': form})
+    licenses = cpa.licenses.all() if cpa else []
+    
+    return render(request, 'api/edit_profile.html', {
+        'form': form,
+        'license_form': license_form,
+        'licenses': licenses,
+        'cpa': cpa
+    })
 
 @login_required
 def create_referral(request):

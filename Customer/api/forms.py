@@ -41,6 +41,15 @@ class UserUpdateForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+class CPALicenseForm(forms.ModelForm):
+    class Meta:
+        model = CPALicense
+        fields = ['state', 'license_number']
+        widgets = {
+            'state': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., NY'}),
+            'license_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'License Number'}),
+        }
+
 class ReferralForm(forms.ModelForm):
     class Meta:
         model = Referral

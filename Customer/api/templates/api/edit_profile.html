@@ -26,11 +26,63 @@
                {% endfor %}
 
                <div class="d-grid">
-                  <button type="submit" class="btn btn-primary">Save Changes</button>
+                  <button type="submit" name="update_profile" class="btn btn-primary">Save Changes</button>
                </div>
             </form>
          </div>
       </div>
+
+      {% if cpa %}
+      <!-- CPALicenses Card -->
+      <div class="card shadow-sm mb-4">
+         <div class="card-header bg-info text-white">
+            <h4 class="mb-0">CPA Licenses</h4>
+         </div>
+         <div class="card-body">
+            {% if licenses %}
+            <ul class="list-group mb-4">
+               {% for license in licenses %}
+               <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                     <strong>{{ license.state }}</strong> - {{ license.license_number }}
+                  </span>
+                  {% if license.is_verified %}
+                  <span class="badge bg-success rounded-pill">Verified</span>
+                  {% else %}
+                  <span class="badge bg-warning rounded-pill text-dark">Pending</span>
+                  {% endif %}
+               </li>
+               {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No licenses assigned.</p>
+            {% endif %}
+
+            <hr>
+            <h5>Add New License</h5>
+            <form method="post">
+               {% csrf_token %}
+
+               {% for field in license_form %}
+               <div class="mb-3">
+                  <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+               </div>
+               {% endfor %}
+
+               <div class="d-grid">
+                  <button type="submit" name="add_license" class="btn btn-info text-white">Add License</button>
+               </div>
+            </form>
+         </div>
+      </div>
+      {% endif %}
 
       <!-- Security Settings Card -->
       <div class="card shadow-sm">
