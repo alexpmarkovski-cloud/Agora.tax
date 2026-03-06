@@ -34,10 +34,17 @@
                   <td>{{ cpa.license_state }}</td>
                   <td>{{ cpa.created_at|date:"M d, Y" }}</td>
                   <td>
-                     <form method="post" action="{% url 'approve_cpa' cpa.pk %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
-                     </form>
+                     <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'approve_cpa' cpa.pk %}">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'reject_cpa' cpa.pk %}"
+                           onsubmit="return confirm('Are you sure you want to reject this CPA and send a notification email?');">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                     </div>
                   </td>
                </tr>
                {% endfor %}

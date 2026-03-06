@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.mail import send_mail
 from django.conf import settings
 import stripe
 from .models import Referral, Offer, CPAUser, ProductCategory, CPALicense
 from .forms import ReferralForm, UserUpdateForm, CPALicenseForm
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Global Stripe Setup
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -104,6 +107,7 @@ def create_referral(request):
         form = ReferralForm()
     return render(request, 'api/create_referral.html', {'form': form})
 
+@staff_member_required
 def referral_list(request):
     referrals = Referral.objects.all().order_by('-gen_date')
     
@@ -121,14 +125,13 @@ def referral_list(request):
         'selected_category_id': selected_category_id
     })
 
+@staff_member_required
 def update_referral_status(request, pk):
     referral = get_object_or_404(Referral, pk=pk)
     if request.method == 'POST':
         referral.status = 'CONVERTED'
         referral.save()
     return redirect('referral_list')
-
-from django.contrib.admin.views.decorators import staff_member_required
 
 @staff_member_required
 def cpa_verifier(request):
@@ -143,6 +146,24 @@ def approve_cpa(request, pk):
         cpa.save()
     return redirect('cpa_verifier')
 
+@staff_member_required
+def reject_cpa(request, pk):
+    cpa = get_object_or_404(CPAUser, pk=pk)
+    if request.method == 'POST':
+        # Send a placeholder rejection email
+        subject = 'Update on your CPA Account Registration'
+        message = 'Thank you for registering. Unfortunately, we are unable to approve your account at this time. Please contact support for more information.'
+        from_email = settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@agora.com'
+        recipient_list = [cpa.email]
+        
+        try:
+            send_mail(subject, message, from_email, recipient_list)
+            messages.success(request, f'Rejection email successfully sent to {cpa.email}.')
+        except Exception as e:
+            messages.error(request, f'Failed to send rejection email: {str(e)}')
+            
+    return redirect('cpa_verifier')
+
 @login_required
 def storefront(request):
     featured_offers = Offer.objects.filter(is_active=True, is_featured=True)[:3]
@@ -152,4 +173,27 @@ def storefront(request):
 def offer_list(request):
     offers = Offer.objects.filter(is_active=True).order_by('name')
     return render(request, 'api/offer_list.html', {'offers': offers})
+
+@login_required
+def cpa_dashboard(request):
+    cpa_user = getattr(request.user, 'cpauser', None)
+    
+    if not cpa_user:
+        messages.error(request, "Your account is not linked to a CPA profile.")
+        return redirect('storefront')
+
+    referrals = Referral.objects.filter(cpa=cpa_user).order_by('-gen_date')
+    
+    category_id = request.GET.get('category')
+    if category_id:
+        referrals = referrals.filter(offer__product__category_id=category_id)
+        
+    categories = ProductCategory.objects.all().order_by('name')
+    selected_category_id = int(category_id) if category_id and category_id.isdigit() else None
+    
+    return render(request, 'api/cpa_dashboard.html', {
+        'referrals': referrals,
+        'categories': categories,
+        'selected_category_id': selected_category_id
+    })
 
