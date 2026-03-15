@@ -51,9 +51,20 @@ class CPALicenseForm(forms.ModelForm):
         }
 
 class ReferralForm(forms.ModelForm):
+    client_type = forms.ChoiceField(
+        choices=[('', 'Select Client Type'), ('Individual', 'Individual'), ('Business', 'Business')],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    category = forms.ChoiceField(
+        choices=[('', 'Select Category')],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
     class Meta:
         model = Referral
-        fields = ['offer', 'client_email']
+        fields = ['client_type', 'category', 'offer', 'client_email']
         widgets = {
             'offer': forms.Select(attrs={'class': 'form-select'}),
             'client_email': forms.EmailInput(attrs={'class': 'form-control'}),

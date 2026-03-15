@@ -1,17 +1,23 @@
 from django.contrib import admin
 from django.db.models import Sum
 from django.contrib import messages
-from .models import FinancialCompany, Product, Offer, CPAUser, CPALicense, Referral, Transaction, PayoutBatch
+from .models import FinancialCompany, ProductCategory, Product, Offer, CPAUser, CPALicense, Referral, Transaction, PayoutBatch
 
 @admin.register(FinancialCompany)
 class FinancialCompanyAdmin(admin.ModelAdmin):
     list_display = ('name', 'integration_type', 'created_at')
     search_fields = ('name',)
 
+@admin.register(ProductCategory)
+class ProductCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'client_type')
+    list_filter = ('client_type',)
+    search_fields = ('name',)
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'company', 'category')
-    list_filter = ('company', 'category')
+    list_filter = ('company', 'category__client_type', 'category')
     search_fields = ('name', 'company__name')
 
 @admin.register(Offer)

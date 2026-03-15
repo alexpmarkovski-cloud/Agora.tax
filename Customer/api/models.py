@@ -12,14 +12,20 @@ class FinancialCompany(models.Model):
         return self.name
 
 class ProductCategory(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    CLIENT_TYPE_CHOICES = [
+        ('Individual', 'Individual'),
+        ('Business', 'Business'),
+    ]
+    client_type = models.CharField(max_length=50, choices=CLIENT_TYPE_CHOICES, default='Individual')
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.client_type} - {self.name}"
         
     class Meta:
         verbose_name_plural = "Product Categories"
+        unique_together = ('name', 'client_type')
 
 # 2. Products (e.g., "High Yield Savings Account")
 class Product(models.Model):

@@ -24,7 +24,7 @@
                </div>
                {% endfor %}
 
-               <div class="d-grid gap-2">
+               <div class="d-grid gap-2 mt-4">
                   <button type="submit" class="btn btn-primary">Create Referral</button>
                   <a href="{% url 'referral_list' %}" class="btn btn-outline-secondary">Cancel</a>
                </div>
@@ -33,4 +33,78 @@
       </div>
    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const catalog = JSON.parse('{{ catalog_json|escapejs }}');
+        
+        const clientTypeSelect = document.getElementById('id_client_type');
+        const categorySelect = document.getElementById('id_category');
+        const offerSelect = document.getElementById('id_offer');
+        
+        // Disable initially
+        categorySelect.disabled = true;
+        offerSelect.disabled = true;
+        
+        // Store all original offer options if we wanted to show all initially,
+        // but since we want hierarchy, we start empty.
+        // Let's clear offer options initially except for the placeholder
+        Array.from(offerSelect.options).forEach(opt => {
+            if(opt.value) opt.style.display = 'none'; // Hide all actual values
+        });
+        
+        clientTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            
+            // Clear categories
+            categorySelect.innerHTML = '<option value="">Select Category</option>';
+            // Clear offers
+            Array.from(offerSelect.options).forEach(opt => {
+                if(opt.value) opt.style.display = 'none';
+            });
+            offerSelect.value = '';
+            
+            if (selectedType && catalog[selectedType]) {
+                categorySelect.disabled = false;
+                Object.keys(catalog[selectedType]).forEach(catName => {
+                    const option = document.createElement('option');
+                    option.value = catName;
+                    option.textContent = catName;
+                    categorySelect.appendChild(option);
+                });
+            } else {
+                categorySelect.disabled = true;
+                offerSelect.disabled = true;
+            }
+        });
+        
+        categorySelect.addEventListener('change', function() {
+            const selectedType = clientTypeSelect.value;
+            const selectedCategory = this.value;
+            
+            // Clear current offers (by hiding them) and resetting value
+            Array.from(offerSelect.options).forEach(opt => {
+                if(opt.value) opt.style.display = 'none';
+            });
+            offerSelect.value = '';
+            
+            if (selectedType && selectedCategory && catalog[selectedType][selectedCategory]) {
+                offerSelect.disabled = false;
+                const validOfferIds = catalog[selectedType][selectedCategory].map(o => String(o.id));
+                
+                // Show only valid offers
+                Array.from(offerSelect.options).forEach(opt => {
+                    if (opt.value && validOfferIds.includes(opt.value)) {
+                        opt.style.display = '';
+                    }
+                });
+            } else {
+                offerSelect.disabled = true;
+            }
+        });
+        
+        // If it's a POST and there are validation errors, we might want to re-populate the state
+        // This is a simple version, a more robust one would select the previous values.
+    });
+</script>
 {% endblock %}

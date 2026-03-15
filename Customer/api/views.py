@@ -83,6 +83,8 @@ def edit_profile(request):
         'cpa': cpa
     })
 
+import json
+
 @login_required
 def create_referral(request):
     if request.method == 'POST':
@@ -105,7 +107,33 @@ def create_referral(request):
             return redirect('referral_list')
     else:
         form = ReferralForm()
-    return render(request, 'api/create_referral.html', {'form': form})
+        
+    # Generate the catalog JSON for dynamic dropdowns
+    active_offers = Offer.objects.filter(is_active=True).select_related('product__category')
+    catalog = {
+        'Individual': {},
+        'Business': {}
+    }
+    
+    for offer in active_offers:
+        cat = offer.product.category
+        if cat:
+            client_type = cat.client_type
+            cat_name = cat.name
+            
+            if client_type in catalog:
+                if cat_name not in catalog[client_type]:
+                    catalog[client_type][cat_name] = []
+                
+                catalog[client_type][cat_name].append({
+                    'id': offer.id,
+                    'text': f"{offer.name} - Client Gets: {offer.client_bonus_summary}"
+                })
+                
+    return render(request, 'api/create_referral.html', {
+        'form': form,
+        'catalog_json': json.dumps(catalog)
+    })
 
 @staff_member_required
 def referral_list(request):
