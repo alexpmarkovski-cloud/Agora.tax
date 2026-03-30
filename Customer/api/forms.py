@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.models import User
 from allauth.account.forms import SignupForm
+import threading
 from .models import Referral, Offer, CPAUser, CPALicense
+from .services.nasba_scraper import verify_cpa_nasba
 
 class CPASignupForm(SignupForm):
     first_name = forms.CharField(max_length=30, label='First Name')
@@ -25,11 +27,31 @@ class CPASignupForm(SignupForm):
         )
         
         # 3. Create the initial CPALicense
-        CPALicense.objects.create(
+        license = CPALicense.objects.create(
             cpa=cpa,
             state=self.cleaned_data['license_state'],
             license_number=self.cleaned_data['license_number']
         )
+        
+        # 4. Fire background thread for automatic NASBA verification
+        def bg_verify(lic_pk):
+            try:
+                # Need to re-fetch inside thread to ensure state is fresh
+                lic = CPALicense.objects.get(pk=lic_pk)
+                result = verify_cpa_nasba(
+                    first_name=lic.cpa.first_name,
+                    last_name=lic.cpa.last_name,
+                    state=lic.state,
+                    license_number=lic.license_number
+                )
+                if result.get('is_valid'):
+                    lic.is_verified = True
+                    lic.save()
+            except Exception as e:
+                print(f"Background verification failed: {e}")
+                
+        threading.Thread(target=bg_verify, args=(license.pk,), daemon=True).start()
+        
         return user
 
 class UserUpdateForm(forms.ModelForm):
@@ -79,3 +101,22 @@ class ReferralForm(forms.ModelForm):
     @staticmethod
     def label_from_instance(obj):
         return f"{obj.name} - Client Gets: {obj.client_bonus_summary}"
+
+class ContactInquiryForm(forms.Form):
+    INQUIRY_CHOICES = [
+        ('', 'Select Inquiry Type'),
+        ('General Support', 'General Support'),
+        ('Payout Issue', 'Payout Issue'),
+        ('Offer Inquiry', 'Offer Inquiry'),
+        ('Technical Issue', 'Technical Issue'),
+        ('Other', 'Other')
+    ]
+    inquiry_type = forms.ChoiceField(
+        choices=INQUIRY_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True
+    )
+    notes = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Optional details...'}),
+        required=False
+    )

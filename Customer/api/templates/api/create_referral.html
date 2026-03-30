@@ -8,6 +8,7 @@
             <h4 class="mb-0">Create New Referral</h4>
          </div>
          <div class="card-body">
+            {% if is_verified %}
             <form method="post">
                {% csrf_token %}
 
@@ -26,14 +27,23 @@
 
                <div class="d-grid gap-2 mt-4">
                   <button type="submit" class="btn btn-primary">Create Referral</button>
-                  <a href="{% url 'referral_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                  <a href="{% url 'cpa_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
                </div>
             </form>
+            {% else %}
+            <div class="alert alert-danger text-center" role="alert">
+               <h5 class="alert-heading">Verification Required</h5>
+               <p>You cannot generate referrals because your CPA license has not been verified yet.</p>
+               <hr>
+               <p class="mb-0">Please <a href="{% url 'edit_profile' %}" class="alert-link">Edit your Profile</a> to make sure your license details are correct, or contact support.</p>
+            </div>
+            {% endif %}
          </div>
       </div>
    </div>
 </div>
 
+{% if is_verified %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const catalog = JSON.parse('{{ catalog_json|escapejs }}');
@@ -107,4 +117,5 @@
         // This is a simple version, a more robust one would select the previous values.
     });
 </script>
+{% endif %}
 {% endblock %}

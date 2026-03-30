@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import stripe
 from .models import Referral, Offer, CPAUser, ProductCategory, CPALicense
-from .forms import ReferralForm, UserUpdateForm, CPALicenseForm
+from .forms import ReferralForm, UserUpdateForm, CPALicenseForm, ContactInquiryForm
 from django.contrib.admin.views.decorators import staff_member_required
 
 # Global Stripe Setup
@@ -87,24 +87,38 @@ import json
 
 @login_required
 def create_referral(request):
+    cpa_user = getattr(request.user, 'cpauser', None)
+    
+    # Verification Check
+    is_verified = False
+    if cpa_user and cpa_user.licenses.filter(is_verified=True).exists():
+        is_verified = True
+        
     if request.method == 'POST':
+        if not is_verified:
+            messages.error(request, "You must be verified to create a referral.")
+            return redirect('create_referral')
+            
         form = ReferralForm(request.POST)
         if form.is_valid():
             referral = form.save(commit=False)
-            # Snapshot pricing from the offer
-            if hasattr(request.user, 'cpauser'):
-                referral.cpa = request.user.cpauser
-            else:
-                return render(request, 'api/create_referral.html', {
-                    'form': form,
-                    'error': "Error: Your account is not linked to a CPA profile."
-                })
-            
+            referral.cpa = cpa_user
             offer = referral.offer
             referral.agreed_cpa_payout = offer.cpa_payout
             referral.agreed_platform_fee = offer.platform_fee
+            
+            # Specialized PWM Check
+            if offer.product.category and offer.product.category.name == 'Private Wealth Management':
+                # Stash details in session for step 2
+                request.session['pwm_referral_data'] = {
+                    'offer_id': offer.id,
+                    'client_email': referral.client_email,
+                }
+                return redirect('pwm_state_selection')
+                
             referral.save()
-            return redirect('referral_list')
+            messages.success(request, f"Referral created successfully for {offer.name}")
+            return redirect('cpa_dashboard')
     else:
         form = ReferralForm()
         
@@ -132,8 +146,75 @@ def create_referral(request):
                 
     return render(request, 'api/create_referral.html', {
         'form': form,
-        'catalog_json': json.dumps(catalog)
+        'catalog_json': json.dumps(catalog),
+        'is_verified': is_verified
     })
+
+import random
+import string
+
+@login_required
+def pwm_state_selection(request):
+    cpa_user = getattr(request.user, 'cpauser', None)
+    if 'pwm_referral_data' not in request.session:
+        messages.error(request, "Invalid PWM flow.")
+        return redirect('create_referral')
+        
+    if request.method == 'POST':
+        state = request.POST.get('state')
+        if not state:
+            messages.error(request, "State is required.")
+            return redirect('pwm_state_selection')
+            
+        data = request.session['pwm_referral_data']
+        offer = get_object_or_404(Offer, id=data['offer_id'])
+        
+        # Generate Referral Code e.g., PWM-NY-1234
+        random_suffix = ''.join(random.choices(string.digits, k=4))
+        ref_code = f"PWM-{state.upper()}-{random_suffix}"
+        
+        # Save Referral
+        referral = Referral.objects.create(
+            cpa=cpa_user,
+            offer=offer,
+            agreed_cpa_payout=offer.cpa_payout,
+            agreed_platform_fee=offer.platform_fee,
+            client_email=data.get('client_email', ''),
+            client_state=state.upper(),
+            referral_code=ref_code
+        )
+        
+        del request.session['pwm_referral_data'] # Clean up
+        
+        return render(request, 'api/pwm_success.html', {'referral_code': ref_code, 'state': state.upper()})
+        
+    return render(request, 'api/pwm_state_selection.html')
+
+@login_required
+def contact_support(request):
+    if request.method == 'POST':
+        form = ContactInquiryForm(request.POST)
+        if form.is_valid():
+            inquiry_type = form.cleaned_data['inquiry_type']
+            notes = form.cleaned_data['notes']
+            
+            subject = f"Support Inquiry: {inquiry_type} - {request.user.email}"
+            message = f"User: {request.user.email}\nType: {inquiry_type}\n\nNotes:\n{notes}"
+            
+            # Send email
+            try:
+                # Placeholder admin email, using DEFAULT_FROM_EMAIL temporarily
+                # Replace 'admin@agora.com' with an actual recipient when going to production
+                recipient = 'admin@agora.com' 
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
+                messages.success(request, "Your inquiry has been sent to our support team.")
+                return redirect('cpa_dashboard')
+            except Exception as e:
+                messages.error(request, f"Failed to send inquiry: {e}")
+    else:
+        form = ContactInquiryForm()
+        
+    return render(request, 'api/contact_support.html', {'form': form})
 
 @staff_member_required
 def referral_list(request):
@@ -163,32 +244,58 @@ def update_referral_status(request, pk):
 
 @staff_member_required
 def cpa_verifier(request):
-    unverified_cpas = CPAUser.objects.filter(is_verified=False).order_by('-created_at')
-    return render(request, 'api/cpa_verifier.html', {'unverified_cpas': unverified_cpas})
+    unverified_licenses = CPALicense.objects.filter(is_verified=False).select_related('cpa').order_by('-created_at')
+    return render(request, 'api/cpa_verifier.html', {'unverified_licenses': unverified_licenses})
 
 @staff_member_required
 def approve_cpa(request, pk):
-    cpa = get_object_or_404(CPAUser, pk=pk)
+    license = get_object_or_404(CPALicense, pk=pk)
     if request.method == 'POST':
-        cpa.is_verified = True
-        cpa.save()
+        license.is_verified = True
+        license.save()
+        messages.success(request, f'CPA License {license.license_number} approved.')
     return redirect('cpa_verifier')
 
 @staff_member_required
 def reject_cpa(request, pk):
-    cpa = get_object_or_404(CPAUser, pk=pk)
+    license = get_object_or_404(CPALicense, pk=pk)
     if request.method == 'POST':
         # Send a placeholder rejection email
         subject = 'Update on your CPA Account Registration'
         message = 'Thank you for registering. Unfortunately, we are unable to approve your account at this time. Please contact support for more information.'
         from_email = settings.DEFAULT_FROM_EMAIL if hasattr(settings, 'DEFAULT_FROM_EMAIL') else 'noreply@agora.com'
-        recipient_list = [cpa.email]
+        recipient_list = [license.cpa.email]
         
         try:
             send_mail(subject, message, from_email, recipient_list)
-            messages.success(request, f'Rejection email successfully sent to {cpa.email}.')
+            messages.success(request, f'Rejection email successfully sent to {license.cpa.email}.')
         except Exception as e:
             messages.error(request, f'Failed to send rejection email: {str(e)}')
+            
+    return redirect('cpa_verifier')
+
+import threading
+from .services.nasba_scraper import verify_cpa_nasba
+
+@staff_member_required
+def auto_verify_cpa(request, pk):
+    license = get_object_or_404(CPALicense, pk=pk)
+    if request.method == 'POST':
+        cpa = license.cpa
+        # Run synchronously for admin trigger so they get immediate feedback
+        result = verify_cpa_nasba(
+            first_name=cpa.first_name,
+            last_name=cpa.last_name,
+            state=license.state,
+            license_number=license.license_number
+        )
+        
+        if result.get('is_valid'):
+            license.is_verified = True
+            license.save()
+            messages.success(request, f"Auto-Verify Success: {result.get('message')}")
+        else:
+            messages.error(request, f"Auto-Verify Failed: {result.get('message')}")
             
     return redirect('cpa_verifier')
 

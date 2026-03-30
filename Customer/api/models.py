@@ -107,6 +107,8 @@ class Referral(models.Model):
     agreed_platform_fee = models.DecimalField(max_digits=10, decimal_places=2)
     
     client_email = models.EmailField(blank=True, null=True) # Or hash this for privacy later
+    client_state = models.CharField(max_length=2, blank=True, null=True, help_text="Used primarily for PWM")
+    referral_code = models.CharField(max_length=50, blank=True, null=True, help_text="Generated for specific products like PWM")
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     
     gen_date = models.DateTimeField(auto_now_add=True) # Creation date

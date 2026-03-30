@@ -1,0 +1,26 @@
+{% extends 'api/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 mt-4">
+        <div class="card shadow-lg border-success text-center">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Referral Generated Successfully!</h4>
+            </div>
+            <div class="card-body py-5">
+                <h1 class="display-4 text-success mb-4"><i class="bi bi-check-circle-fill"></i></h1>
+                <h3 class="mb-2">Your Private Wealth Management Code</h3>
+                <p class="text-muted mb-4">State: <strong>{{ state }}</strong></p>
+                
+                <div class="p-4 bg-light rounded border border-secondary mb-4">
+                    <h2 class="font-monospace mb-0 text-primary">{{ referral_code }}</h2>
+                </div>
+                
+                <p class="mb-4">Please provide this code to your client. The financial advisor will ask for it during their onboarding consultation.</p>
+                
+                <a href="{% url 'cpa_dashboard' %}" class="btn btn-outline-primary btn-lg">Return to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

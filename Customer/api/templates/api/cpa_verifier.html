@@ -10,7 +10,7 @@
 
 <div class="card shadow-sm">
    <div class="card-body">
-      {% if unverified_cpas %}
+      {% if unverified_licenses %}
       <div class="table-responsive">
          <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -25,21 +25,26 @@
                </tr>
             </thead>
             <tbody>
-               {% for cpa in unverified_cpas %}
+               {% for license in unverified_licenses %}
                <tr>
-                  <td>{{ cpa.first_name }} {{ cpa.last_name }}</td>
-                  <td>{{ cpa.email }}</td>
-                  <td>{{ cpa.company_name }}</td>
-                  <td>{{ cpa.license_number }}</td>
-                  <td>{{ cpa.license_state }}</td>
-                  <td>{{ cpa.created_at|date:"M d, Y" }}</td>
+                  <td>{{ license.cpa.first_name }} {{ license.cpa.last_name }}</td>
+                  <td>{{ license.cpa.email }}</td>
+                  <td>{{ license.cpa.company_name }}</td>
+                  <td>{{ license.license_number }}</td>
+                  <td>{{ license.state }}</td>
+                  <td>{{ license.created_at|date:"M d, Y" }}</td>
                   <td>
                      <div class="d-flex gap-2">
-                        <form method="post" action="{% url 'approve_cpa' cpa.pk %}">
+                        <form method="post" action="{% url 'approve_cpa' license.pk %}">
                            {% csrf_token %}
                            <button type="submit" class="btn btn-sm btn-success">Approve</button>
                         </form>
-                        <form method="post" action="{% url 'reject_cpa' cpa.pk %}"
+                        <form method="post" action="{% url 'auto_verify_cpa' license.pk %}"
+                           onsubmit="return confirm('Please wait while the system auto-verifies this CPA. This might take 10-15 seconds.');">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-outline-primary">Auto-Verify</button>
+                        </form>
+                        <form method="post" action="{% url 'reject_cpa' license.pk %}"
                            onsubmit="return confirm('Are you sure you want to reject this CPA and send a notification email?');">
                            {% csrf_token %}
                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>

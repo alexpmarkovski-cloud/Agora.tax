@@ -13,4 +13,7 @@ urlpatterns = [
     path('verifier/', views.cpa_verifier, name='cpa_verifier'),
     path('verifier/approve/<int:pk>/', views.approve_cpa, name='approve_cpa'),
     path('verifier/reject/<int:pk>/', views.reject_cpa, name='reject_cpa'),
+    path('verifier/auto/<int:pk>/', views.auto_verify_cpa, name='auto_verify_cpa'),
+    path('contact/', views.contact_support, name='contact_support'),
+    path('referrals/pwm-state/', views.pwm_state_selection, name='pwm_state_selection'),
 ]

@@ -45,6 +45,10 @@
             <td>{{ referral.client_email }}</td>
             <td>
                {{ referral.offer.name }}
+               {% if referral.referral_code %}
+               <br>
+               <span class="badge bg-secondary font-monospace">{{ referral.referral_code }}</span>
+               {% endif %}
             </td>
             <td>
                {% if referral.status == 'PENDING' %}
