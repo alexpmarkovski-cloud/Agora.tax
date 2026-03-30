@@ -107,8 +107,8 @@ def create_referral(request):
             referral.agreed_cpa_payout = offer.cpa_payout
             referral.agreed_platform_fee = offer.platform_fee
             
-            # Specialized PWM Check
-            if offer.product.category and offer.product.category.name == 'Private Wealth Management':
+            # Check for State Requirements
+            if offer.requires_client_state:
                 # Stash details in session for step 2
                 request.session['pwm_referral_data'] = {
                     'offer_id': offer.id,

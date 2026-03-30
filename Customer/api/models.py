@@ -54,6 +54,7 @@ class Offer(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False, help_text="Display this offer on the storefront")
+    requires_client_state = models.BooleanField(default=False, help_text="If checked, creating a referral for this offer routes the CPA to a State Selection page.")
     terms_url = models.URLField(blank=True)
 
     def __str__(self):

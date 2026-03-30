@@ -22,9 +22,9 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(Offer)
 class OfferAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product', 'cpa_payout', 'client_bonus_summary', 'is_active', 'is_featured')
-    list_filter = ('is_active', 'is_featured', 'product__company')
-    list_editable = ('is_active', 'is_featured')
+    list_display = ('name', 'product', 'cpa_payout', 'is_active', 'is_featured', 'requires_client_state')
+    list_filter = ('is_active', 'is_featured', 'requires_client_state', 'product__company')
+    list_editable = ('is_active', 'is_featured', 'requires_client_state')
     search_fields = ('name', 'product__name')
 
 class CPALicenseInline(admin.TabularInline):
