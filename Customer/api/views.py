@@ -186,7 +186,7 @@ def pwm_state_selection(request):
         
         del request.session['pwm_referral_data'] # Clean up
         
-        return render(request, 'api/pwm_success.html', {'referral_code': ref_code, 'state': state.upper()})
+        return render(request, 'api/pwm_success.html', {'referral_code': ref_code, 'state': state.upper(), 'offer': offer})
         
     return render(request, 'api/pwm_state_selection.html')
 

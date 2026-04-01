@@ -18,6 +18,23 @@
                 
                 <p class="mb-4">Please provide this code to your client. The financial advisor will ask for it during their onboarding consultation.</p>
                 
+                {% if offer.contact_email or offer.contact_phone %}
+                <div class="card bg-white border-primary mb-4 text-start mx-auto" style="max-width: 400px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary"><i class="bi bi-person-lines-fill me-2"></i>Contact Information</h5>
+                        <p class="card-text text-muted small mb-3">Reach out to our partners below if you have any questions before onboarding.</p>
+                        <ul class="list-unstyled mb-0">
+                            {% if offer.contact_email %}
+                            <li class="mb-2"><strong>Email:</strong> <a href="mailto:{{ offer.contact_email }}">{{ offer.contact_email }}</a></li>
+                            {% endif %}
+                            {% if offer.contact_phone %}
+                            <li><strong>Phone:</strong> {{ offer.contact_phone }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
                 <a href="{% url 'cpa_dashboard' %}" class="btn btn-outline-primary btn-lg">Return to Dashboard</a>
             </div>
         </div>

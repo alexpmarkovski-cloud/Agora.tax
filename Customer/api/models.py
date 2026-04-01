@@ -57,6 +57,10 @@ class Offer(models.Model):
     requires_client_state = models.BooleanField(default=False, help_text="If checked, creating a referral for this offer routes the CPA to a State Selection page.")
     terms_url = models.URLField(blank=True)
 
+    # Contact details for when a referral is generated
+    contact_email = models.EmailField(blank=True, null=True, help_text="Optional contact email provided to the CPA upon referral generation.")
+    contact_phone = models.CharField(max_length=20, blank=True, null=True, help_text="Optional contact phone provided to the CPA upon referral generation.")
+
     def __str__(self):
         return f"{self.name} - ${self.cpa_payout}"
 

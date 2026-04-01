@@ -26,6 +26,20 @@ class OfferAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'is_featured', 'requires_client_state', 'product__company')
     list_editable = ('is_active', 'is_featured', 'requires_client_state')
     search_fields = ('name', 'product__name')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('product', 'name', 'is_active', 'is_featured', 'requires_client_state')
+        }),
+        ('Pricing Configuration', {
+            'fields': ('cpa_payout', 'platform_fee')
+        }),
+        ('Client Facing Details', {
+            'fields': ('client_bonus_summary', 'client_requirements', 'application_link', 'terms_url')
+        }),
+        ('Contact Information (e.g. for PWM)', {
+            'fields': ('contact_email', 'contact_phone')
+        }),
+    )
 
 class CPALicenseInline(admin.TabularInline):
     model = CPALicense
