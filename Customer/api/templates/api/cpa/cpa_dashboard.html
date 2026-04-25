@@ -1,8 +1,8 @@
-{% extends 'api/base.html' %}
+{% extends 'api/shared/base.html' %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-   <h1>Referrals</h1>
+   <h1>My Referrals</h1>
    <div>
       {% if user.cpauser and not user.cpauser.stripe_account_id %}
       <a href="{% url 'onboard_cpa_stripe' %}" class="btn btn-warning me-2">Setup Payouts</a>
@@ -13,7 +13,7 @@
 
 <div class="row align-items-center mb-3">
    <div class="col-md-6">
-      <form method="get" action="{% url 'referral_list' %}" class="d-flex align-items-center">
+      <form method="get" action="{% url 'cpa_dashboard' %}" class="d-flex align-items-center">
          <label for="categoryFilter" class="me-2 fw-bold text-nowrap">Filter by Product:</label>
          <select name="category" id="categoryFilter" class="form-select w-auto me-2" onchange="this.form.submit()">
             <option value="">All Products</option>
@@ -32,19 +32,16 @@
       <thead class="table-dark">
          <tr>
             <th>ID</th>
-            <th>CPA</th>
             <th>Client Email</th>
             <th>Offer</th>
             <th>Status</th>
             <th>Gen Date</th>
-            <th>Action</th>
          </tr>
       </thead>
       <tbody>
          {% for referral in referrals %}
          <tr>
             <td>{{ referral.id }}</td>
-            <td>{{ referral.cpa.name }}</td>
             <td>{{ referral.client_email }}</td>
             <td>
                {{ referral.offer.name }}
@@ -52,8 +49,6 @@
                <br>
                <span class="badge bg-secondary font-monospace">{{ referral.referral_code }}</span>
                {% endif %}
-               <br>
-               <small class="text-muted">Currently: {{ referral.status }}</small>
             </td>
             <td>
                {% if referral.status == 'PENDING' %}
@@ -69,20 +64,10 @@
                {% endif %}
             </td>
             <td>{{ referral.gen_date|date:"M d, Y" }}</td>
-            <td>
-               {% if referral.status != 'CONVERTED' %}
-               <form method="post" action="{% url 'update_referral_status' referral.id %}" class="d-inline">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-outline-success">Mark Converted</button>
-               </form>
-               {% else %}
-               <span class="text-muted"><i class="bi bi-check-circle"></i> Done</span>
-               {% endif %}
-            </td>
          </tr>
          {% empty %}
          <tr>
-            <td colspan="7" class="text-center py-4">
+            <td colspan="5" class="text-center py-4">
                <p class="text-muted mb-0">No referrals found.</p>
                <a href="{% url 'create_referral' %}" class="btn btn-link">Create your first referral</a>
             </td>

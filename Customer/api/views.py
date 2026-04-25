@@ -49,7 +49,7 @@ def onboard_cpa_stripe(request):
         
     except Exception as e:
         # In prod, log this error
-        return render(request, 'api/referral_list.html', {'error': str(e)})
+        return render(request, 'api/admin/referral_list.html', {'error': str(e)})
 
 @login_required
 def edit_profile(request):
@@ -76,7 +76,7 @@ def edit_profile(request):
     
     licenses = cpa.licenses.all() if cpa else []
     
-    return render(request, 'api/edit_profile.html', {
+    return render(request, 'api/shared/edit_profile.html', {
         'form': form,
         'license_form': license_form,
         'licenses': licenses,
@@ -143,12 +143,18 @@ def create_referral(request):
                     'id': offer.id,
                     'text': f"{offer.name} - Client Gets: {offer.client_bonus_summary}"
                 })
-                
-    return render(request, 'api/create_referral.html', {
-        'form': form,
-        'catalog_json': json.dumps(catalog),
-        'is_verified': is_verified
-    })
+    
+    if cpa_user:
+        return render(request, 'api/cpa/create_referral.html', {
+            'form': form,
+            'catalog_json': json.dumps(catalog),
+            'is_verified': is_verified
+        })
+    else:
+        return render(request, 'api/cpa/create_referral.html', {
+            'form': form,
+            'error': "Error: Your account is not linked to a CPA profile."
+        })
 
 import random
 import string
@@ -186,9 +192,9 @@ def pwm_state_selection(request):
         
         del request.session['pwm_referral_data'] # Clean up
         
-        return render(request, 'api/pwm_success.html', {'referral_code': ref_code, 'state': state.upper(), 'offer': offer})
+        return render(request, 'api/financial_pro/pwm_success.html', {'referral_code': ref_code, 'state': state.upper(), 'offer': offer})
         
-    return render(request, 'api/pwm_state_selection.html')
+    return render(request, 'api/financial_pro/pwm_state_selection.html')
 
 @login_required
 def contact_support(request):
@@ -214,7 +220,7 @@ def contact_support(request):
     else:
         form = ContactInquiryForm()
         
-    return render(request, 'api/contact_support.html', {'form': form})
+    return render(request, 'api/shared/contact_support.html', {'form': form})
 
 @staff_member_required
 def referral_list(request):
@@ -228,7 +234,7 @@ def referral_list(request):
     
     selected_category_id = int(category_id) if category_id and category_id.isdigit() else None
     
-    return render(request, 'api/referral_list.html', {
+    return render(request, 'api/admin/referral_list.html', {
         'referrals': referrals,
         'categories': categories,
         'selected_category_id': selected_category_id
@@ -245,7 +251,7 @@ def update_referral_status(request, pk):
 @staff_member_required
 def cpa_verifier(request):
     unverified_licenses = CPALicense.objects.filter(is_verified=False).select_related('cpa').order_by('-created_at')
-    return render(request, 'api/cpa_verifier.html', {'unverified_licenses': unverified_licenses})
+    return render(request, 'api/admin/cpa_verifier.html', {'unverified_licenses': unverified_licenses})
 
 @staff_member_required
 def approve_cpa(request, pk):
@@ -302,12 +308,12 @@ def auto_verify_cpa(request, pk):
 @login_required
 def storefront(request):
     featured_offers = Offer.objects.filter(is_active=True, is_featured=True)[:3]
-    return render(request, 'api/storefront.html', {'featured_offers': featured_offers})
+    return render(request, 'api/shared/storefront.html', {'featured_offers': featured_offers})
 
 @login_required
 def offer_list(request):
     offers = Offer.objects.filter(is_active=True).order_by('name')
-    return render(request, 'api/offer_list.html', {'offers': offers})
+    return render(request, 'api/shared/offer_list.html', {'offers': offers})
 
 @login_required
 def cpa_dashboard(request):
@@ -326,7 +332,7 @@ def cpa_dashboard(request):
     categories = ProductCategory.objects.all().order_by('name')
     selected_category_id = int(category_id) if category_id and category_id.isdigit() else None
     
-    return render(request, 'api/cpa_dashboard.html', {
+    return render(request, 'api/cpa/cpa_dashboard.html', {
         'referrals': referrals,
         'categories': categories,
         'selected_category_id': selected_category_id
