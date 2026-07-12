@@ -1,7 +1,23 @@
 from django.contrib import admin
 from django.db.models import Sum
 from django.contrib import messages
-from .models import FinancialCompany, ProductCategory, Product, Offer, CPAUser, CPALicense, Referral, Transaction, PayoutBatch
+from .models import FinancialCompany, ProductCategory, Product, Offer, CPAUser, CPALicense, Referral, Transaction, PayoutBatch, FinancialUser, FinancialLicense
+
+class FinancialLicenseInline(admin.TabularInline):
+    model = FinancialLicense
+    extra = 0
+
+@admin.register(FinancialUser)
+class FinancialUserAdmin(admin.ModelAdmin):
+    list_display = ('user', 'company', 'created_at')
+    search_fields = ('user__username', 'user__email', 'company__name')
+    inlines = [FinancialLicenseInline]
+
+@admin.register(FinancialLicense)
+class FinancialLicenseAdmin(admin.ModelAdmin):
+    list_display = ('financial_user', 'state', 'crd_number', 'is_active')
+    list_filter = ('state', 'is_active')
+    search_fields = ('financial_user__user__username', 'crd_number')
 
 @admin.register(FinancialCompany)
 class FinancialCompanyAdmin(admin.ModelAdmin):
@@ -80,7 +96,7 @@ def create_batch_from_referrals(modeladmin, request, queryset):
 class ReferralAdmin(admin.ModelAdmin):
     list_display = ('id', 'cpa', 'offer', 'status', 'gen_date', 'payout_batch')
     list_filter = ('status', 'gen_date', 'payout_batch')
-    search_fields = ('cpa__name', 'client_email')
+    search_fields = ('cpa__first_name', 'cpa__last_name', 'client_email')
     actions = [create_batch_from_referrals]
 
 @admin.register(Transaction)

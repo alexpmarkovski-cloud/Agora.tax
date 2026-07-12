@@ -25,7 +25,8 @@ SECRET_KEY = 'django-insecure-)(%z3!cqpg3$5p(q548&-z+t^f1#3-iv3292)n7_z+f(#es!52
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['testserver', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://*.agora.tax', 'http://*.agora.tax']
 
 
 # Application definition
@@ -79,10 +80,22 @@ WSGI_APPLICATION = 'customer_db.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+import os
+
+DB_NAME = os.environ.get('DB_NAME', 'tax_project')
+DB_USER = os.environ.get('DB_USER', 'alexandermarkovski')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
+DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
+DB_PORT = os.environ.get('DB_PORT', '5432')
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
@@ -128,8 +141,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = 'referral_list'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_REDIRECT_URL = 'login_redirect'
+LOGOUT_REDIRECT_URL = 'account_login'
 
 
 AUTHENTICATION_BACKENDS = [

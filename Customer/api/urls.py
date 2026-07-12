@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.storefront, name='storefront'),
+    path('', views.landing_page, name='landing_page'),
     path('offers/', views.offer_list, name='offer_list'),
     path('referrals/', views.referral_list, name='referral_list'),
     path('my-referrals/', views.cpa_dashboard, name='cpa_dashboard'),
@@ -16,4 +16,17 @@ urlpatterns = [
     path('verifier/auto/<int:pk>/', views.auto_verify_cpa, name='auto_verify_cpa'),
     path('contact/', views.contact_support, name='contact_support'),
     path('referrals/pwm-state/', views.pwm_state_selection, name='pwm_state_selection'),
+    path('login-redirect/', views.login_redirect, name='login_redirect'),
+    path('financial/signup/', views.financial_signup, name='financial_signup'),
+    path('financial/dashboard/', views.financial_dashboard, name='financial_dashboard'),
+    path('financial/offers/new/', views.create_offer, name='create_offer'),
+    path('financial/offers/<int:pk>/edit/', views.edit_offer, name='edit_offer'),
+    path('financial/products/new/', views.create_product, name='create_product'),
+    path('financial/referrals/', views.financial_referrals, name='financial_referrals'),
+    path('financial/referrals/<int:pk>/update/', views.financial_update_referral, name='financial_update_referral'),
+    path('financial/referrals/<int:pk>/status/', views.update_financial_pro_status, name='update_financial_pro_status'),
+    path('verifier/financial/', views.financial_pro_verifier, name='financial_pro_verifier'),
+    path('verifier/financial/approve/<int:pk>/', views.approve_financial_pro, name='approve_financial_pro'),
+    path('verifier/financial/reject/<int:pk>/', views.reject_financial_pro, name='reject_financial_pro'),
+    path('verifier/financial/auto/<int:pk>/', views.auto_verify_financial_pro, name='auto_verify_financial_pro'),
 ]

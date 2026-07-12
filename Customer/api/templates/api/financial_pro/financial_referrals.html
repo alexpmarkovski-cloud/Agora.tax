@@ -1,0 +1,82 @@
+{% extends 'api/shared/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h1 class="display-6 fw-bold text-dark mb-1">Client Referrals</h1>
+        <p class="text-muted fs-5 mb-0">Manage incoming leads and track their status.</p>
+    </div>
+    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+        <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Date</th>
+                        <th>Client Details</th>
+                        <th>Product / Offer</th>
+                        <th>Referring CPA</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referral in referrals %}
+                    <tr>
+                        <td class="ps-4 text-muted small">
+                            {{ referral.gen_date|date:"M d, Y" }}<br>
+                            {{ referral.gen_date|time:"H:i" }}
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ referral.client_name }}</div>
+                            <div class="small text-muted">
+                                {% if referral.client_email %}<i class="bi bi-envelope me-1"></i>{{ referral.client_email }}<br>{% endif %}
+                                {% if referral.client_phone %}<i class="bi bi-telephone me-1"></i>{{ referral.client_phone }}{% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ referral.offer.product.name }}</div>
+                            <div class="badge bg-light text-dark border">{{ referral.offer.name }}</div>
+                        </td>
+                        <td>
+                            <div class="text-dark">{{ referral.cpa.first_name }} {{ referral.cpa.last_name }}</div>
+                            <div class="small text-muted">
+                                {% if referral.cpa.email %}<i class="bi bi-envelope me-1"></i>{{ referral.cpa.email }}<br>{% endif %}
+                            </div>
+                            <div class="small text-muted">{{ referral.cpa.company_name }}</div>
+                        </td>
+                        <td style="min-width: 150px;">
+                            <form action="{% url 'update_financial_pro_status' referral.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <select name="financial_pro_status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if referral.financial_pro_status == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="bi bi-inbox fs-1 mb-2 d-block text-secondary opacity-50"></i>
+                                <h5 class="fw-normal">No Referrals Yet</h5>
+                                <p class="mb-0">When CPAs refer clients to your products, they will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

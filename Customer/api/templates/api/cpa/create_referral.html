@@ -12,28 +12,44 @@
             <form method="post">
                {% csrf_token %}
 
-               {% for field in form %}
-               <div class="mb-3">
-                  <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                  {{ field }}
-                  {% if field.help_text %}
-                  <div class="form-text">{{ field.help_text }}</div>
-                  {% endif %}
-                  {% for error in field.errors %}
-                  <div class="invalid-feedback d-block">{{ error }}</div>
-                  {% endfor %}
-               </div>
-               {% endfor %}
+                {% for field in form %}
+                <div class="mb-3 {% if field.field.widget.input_type == 'checkbox' %}form-check d-flex align-items-start gap-2{% endif %}">
+                   {% if field.field.widget.input_type == 'checkbox' %}
+                      {{ field }}
+                      <label for="{{ field.id_for_label }}" class="form-check-label fw-semibold text-dark small" style="margin-top: 2px;">{{ field.label }}</label>
+                   {% else %}
+                      <label for="{{ field.id_for_label }}" class="form-label fw-semibold text-muted small">{{ field.label }}</label>
+                      {{ field }}
+                   {% endif %}
+                   
+                   {% if field.help_text %}
+                   <div class="form-text">{{ field.help_text }}</div>
+                   {% endif %}
+                   {% for error in field.errors %}
+                   <div class="invalid-feedback d-block">{{ error }}</div>
+                   {% endfor %}
+                </div>
+                {% endfor %}
 
                <div class="d-grid gap-2 mt-4">
                   <button type="submit" class="btn btn-primary">Create Referral</button>
+                  {% if user.financial_user %}
+                  <a href="{% url 'financial_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                  {% elif user.legal_user %}
+                  <a href="{% url 'legal_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                  {% else %}
                   <a href="{% url 'cpa_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                  {% endif %}
                </div>
             </form>
             {% else %}
             <div class="alert alert-danger text-center" role="alert">
                <h5 class="alert-heading">Verification Required</h5>
+               {% if user.legal_user %}
+               <p>You cannot generate referrals because your Legal license/Bar number has not been verified or is inactive.</p>
+               {% else %}
                <p>You cannot generate referrals because your CPA license has not been verified yet.</p>
+               {% endif %}
                <hr>
                <p class="mb-0">Please <a href="{% url 'edit_profile' %}" class="alert-link">Edit your Profile</a> to make sure your license details are correct, or contact support.</p>
             </div>

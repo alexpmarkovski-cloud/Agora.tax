@@ -82,6 +82,106 @@
             </form>
          </div>
       </div>
+      {% elif legal_user %}
+      <!-- LegalLicenses Card -->
+      <div class="card shadow-sm mb-4">
+         <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">Bar Registrations / Licenses</h4>
+         </div>
+         <div class="card-body">
+            {% if licenses %}
+            <ul class="list-group mb-4">
+               {% for license in licenses %}
+               <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                     <strong>{{ license.state }}</strong> - {{ license.bar_number }}
+                  </span>
+                  {% if license.is_active %}
+                  <span class="badge bg-success rounded-pill">Active</span>
+                  {% else %}
+                  <span class="badge bg-danger rounded-pill">Inactive</span>
+                  {% endif %}
+               </li>
+               {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No bar registrations assigned.</p>
+            {% endif %}
+
+            <hr>
+            <h5>Add New Bar Registration</h5>
+            <form method="post">
+               {% csrf_token %}
+
+               {% for field in license_form %}
+               <div class="mb-3">
+                  <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+               </div>
+               {% endfor %}
+
+               <div class="d-grid">
+                  <button type="submit" name="add_license" class="btn btn-warning text-dark">Add Bar Registration</button>
+               </div>
+            </form>
+         </div>
+      </div>
+      {% elif financial_user %}
+      <!-- FinancialLicenses Card -->
+      <div class="card shadow-sm mb-4">
+         <div class="card-header bg-info text-white" style="background-color: hsl(200, 70%, 40%) !important;">
+            <h4 class="mb-0">CRD Registrations / Licenses</h4>
+         </div>
+         <div class="card-body">
+            {% if licenses %}
+            <ul class="list-group mb-4">
+               {% for license in licenses %}
+               <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>
+                     <strong>{{ license.state }}</strong> - {{ license.crd_number }}
+                  </span>
+                  {% if license.is_active %}
+                  <span class="badge bg-success rounded-pill">Active</span>
+                  {% else %}
+                  <span class="badge bg-danger rounded-pill">Inactive</span>
+                  {% endif %}
+               </li>
+               {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No CRD registrations assigned.</p>
+            {% endif %}
+
+            <hr>
+            <h5>Add New CRD Registration</h5>
+            <form method="post">
+               {% csrf_token %}
+
+               {% for field in license_form %}
+               <div class="mb-3">
+                  <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                  <div class="form-text">{{ field.help_text }}</div>
+                  {% endif %}
+                  {% for error in field.errors %}
+                  <div class="invalid-feedback d-block">{{ error }}</div>
+                  {% endfor %}
+               </div>
+               {% endfor %}
+
+               <div class="d-grid">
+                  <button type="submit" name="add_license" class="btn text-white" style="background-color: hsl(200, 70%, 40%);">Add CRD Registration</button>
+               </div>
+            </form>
+         </div>
+      </div>
       {% endif %}
 
       <!-- Security Settings Card -->

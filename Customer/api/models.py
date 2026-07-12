@@ -29,19 +29,21 @@ class ProductCategory(models.Model):
 
 # 2. Products (e.g., "High Yield Savings Account")
 class Product(models.Model):
-    company = models.ForeignKey(FinancialCompany, on_delete=models.CASCADE, related_name='products')
+    company = models.ForeignKey(FinancialCompany, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
     name = models.CharField(max_length=255)
     category = models.ForeignKey(ProductCategory, on_delete=models.SET_NULL, null=True, related_name='products')
     description = models.TextField(blank=True)
     
     def __str__(self):
-        return f"{self.name} ({self.company.name})"
+        comp_name = self.company.name if self.company else "Unknown Company"
+        return f"{self.name} ({comp_name})"
 
 # 3. Offers (The Specific Deal: "Refer now for $50")
 # We separate Product from Offer so you can change prices without deleting the product.
 class Offer(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='offers')
     name = models.CharField(max_length=255) # e.g. "Q4 2025 Bonus"
+    professional_name = models.CharField(max_length=255, blank=True, null=True, help_text="Optional name of the financial/legal professional.")
     
     # Pricing Configuration
     cpa_payout = models.DecimalField(max_digits=10, decimal_places=2) # What the CPA gets
@@ -89,7 +91,34 @@ class CPALicense(models.Model):
 
     def __str__(self):
         return f'{self.state} - {self.license_number}'
-        
+
+
+# 4b. Financial Company Users (The Bankers/Advisors)
+class FinancialUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='financial_user')
+    company = models.ForeignKey(FinancialCompany, on_delete=models.CASCADE, related_name='financial_users')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.get_full_name() or self.user.username} ({self.company.name})"
+
+
+
+# 4f. Financial Professional Licenses
+class FinancialLicense(models.Model):
+    financial_user = models.ForeignKey(FinancialUser, on_delete=models.CASCADE, related_name='licenses')
+    state = models.CharField(max_length=2, help_text='State registered (e.g., NY)')
+    crd_number = models.CharField(max_length=50, help_text='Individual CRD Number')
+    firm_crd = models.CharField(max_length=50, blank=True, null=True, help_text='Firm CRD/SEC Number')
+    zip_code = models.CharField(max_length=20, blank=True, null=True, help_text='ZIP Code')
+    is_active = models.BooleanField(default=True, help_text='CRD active status')
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.state} - {self.crd_number} (Active: {self.is_active})"
+
+
 
 # 5. Referrals (The "Order")
 # This is the most critical table. It snapshots the price.
@@ -101,7 +130,14 @@ class Referral(models.Model):
         ('REJECTED', 'Rejected'),
     ]
 
-    cpa = models.ForeignKey(CPAUser, on_delete=models.CASCADE, related_name='referrals')
+    FINANCIAL_PRO_STATUS_CHOICES = [
+        ('NOT_VIEWED', 'Not Viewed'),
+        ('VIEWED', 'Viewed'),
+        ('CLIENT_CONTACTED', 'Client Contacted'),
+    ]
+
+    cpa = models.ForeignKey(CPAUser, on_delete=models.CASCADE, related_name='referrals', null=True, blank=True)
+    financial_user = models.ForeignKey('FinancialUser', on_delete=models.CASCADE, related_name='made_referrals', null=True, blank=True)
     offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True) # If offer is deleted, keep the referral history
     # Link to Payout Batch
     payout_batch = models.ForeignKey('PayoutBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
@@ -111,16 +147,43 @@ class Referral(models.Model):
     agreed_cpa_payout = models.DecimalField(max_digits=10, decimal_places=2)
     agreed_platform_fee = models.DecimalField(max_digits=10, decimal_places=2)
     
+    client_name = models.CharField(max_length=255, blank=True, null=True)
     client_email = models.EmailField(blank=True, null=True) # Or hash this for privacy later
+    client_phone = models.CharField(max_length=50, blank=True, null=True)
     client_state = models.CharField(max_length=2, blank=True, null=True, help_text="Used primarily for PWM")
     referral_code = models.CharField(max_length=50, blank=True, null=True, help_text="Generated for specific products like PWM")
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
+    financial_pro_status = models.CharField(max_length=50, choices=FINANCIAL_PRO_STATUS_CHOICES, default='NOT_VIEWED')
     
     gen_date = models.DateTimeField(auto_now_add=True) # Creation date
     conversion_date = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def referrer_name(self):
+        if self.cpa:
+            return f"{self.cpa.first_name} {self.cpa.last_name}"
+        elif self.financial_user:
+            return f"{self.financial_user.user.first_name} {self.financial_user.user.last_name}"
+        return "Unknown Referrer"
+
+    @property
+    def referrer_company(self):
+        if self.cpa:
+            return self.cpa.company_name
+        elif self.financial_user:
+            return self.financial_user.company.name
+        return ""
+
+    @property
+    def referrer_email(self):
+        if self.cpa:
+            return self.cpa.email
+        elif self.financial_user:
+            return self.financial_user.user.email
+        return ""
+
     def __str__(self):
-        return f"Referral #{self.id} by {self.cpa.first_name} {self.cpa.last_name}"
+        return f"Referral #{self.id} by {self.referrer_name}"
 
 # 6. Transactions (The Master Ledger)
 # Replaces separate "Tax Payment" and "Finance Payment" tables

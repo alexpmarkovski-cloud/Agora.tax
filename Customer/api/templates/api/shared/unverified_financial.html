@@ -1,0 +1,22 @@
+{% extends 'api/shared/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <div class="card shadow-sm">
+            <div class="card-body py-5">
+                <h1 class="display-5 text-warning mb-4">Verification Pending</h1>
+                <p class="lead mb-4">
+                    Your Financial Professional account is currently under review.
+                </p>
+                <p class="text-muted">
+                    We are verifying your credentials via FINRA BrokerCheck. You will not have access to the partner dashboard or features until your CRD number and firm information have been successfully verified. This typically takes just a few moments, but may require manual review.
+                </p>
+                <p class="text-muted mt-4">
+                    Please check back soon, or <a href="{% url 'contact_support' %}">contact support</a> if you believe there is an error.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@ description: "Best practices and common patterns for developing in the OG Agora 
 
 # Django Development Patterns
 
-Follow these guidelines for consistent development within the OG Agora project.
+Follow these guidelines for consistent development within the OG_Agora project.
 
 ## Authentication & Users
 - **Custom Model**: Always use the `CPAUser` model for CPA-related functionality. It is linked to the standard Django `User` via a `OneToOneField`.

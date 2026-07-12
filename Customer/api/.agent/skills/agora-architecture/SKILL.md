@@ -20,6 +20,7 @@ The Agora project is a platform connecting CPAs with financial institutions. It 
 ## User Roles
 - **CPA**: The primary platform users. They manage referrals for their clients.
 - **Admin**: Staff users who manage the platform, verify CPAs, and approve payouts.
+- **FinancialCompanyUser**: Users who work for the financial companies and can post offers to the platform.
 
 ## Core Domain Model
 The system centers around the following key entities (found in `api/models.py`):

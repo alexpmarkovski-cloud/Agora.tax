@@ -1,0 +1,66 @@
+{% extends 'api/shared/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+   <div class="col">
+      <h2>Financial Pro Verifier</h2>
+      <p class="text-muted">Approve unverified Financial Professionals.</p>
+   </div>
+</div>
+
+<div class="card shadow-sm">
+   <div class="card-body">
+      {% if unverified_licenses %}
+      <div class="table-responsive">
+         <table class="table table-hover align-middle">
+            <thead class="table-light">
+               <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Company Name</th>
+                  <th>CRD Number</th>
+                  <th>State</th>
+                  <th>Registration Date</th>
+                  <th>Action</th>
+               </tr>
+            </thead>
+            <tbody>
+               {% for license in unverified_licenses %}
+               <tr>
+                  <td>{{ license.financial_user.user.first_name }} {{ license.financial_user.user.last_name }}</td>
+                  <td>{{ license.financial_user.user.email }}</td>
+                  <td>{{ license.financial_user.company.name }}</td>
+                  <td>{{ license.crd_number }}</td>
+                  <td>{{ license.state }}</td>
+                  <td>{{ license.created_at|date:"M d, Y" }}</td>
+                  <td>
+                     <div class="d-flex gap-2">
+                        <form method="post" action="{% url 'approve_financial_pro' license.pk %}">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form method="post" action="{% url 'auto_verify_financial_pro' license.pk %}"
+                           onsubmit="return confirm('Please wait while the system auto-verifies this Financial Professional via FINRA. This might take up to 15 seconds.');">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-outline-primary">Auto-Verify</button>
+                        </form>
+                        <form method="post" action="{% url 'reject_financial_pro' license.pk %}"
+                           onsubmit="return confirm('Are you sure you want to reject this Financial Professional and send a notification email?');">
+                           {% csrf_token %}
+                           <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                     </div>
+                  </td>
+               </tr>
+               {% endfor %}
+            </tbody>
+         </table>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+         <p class="text-muted mb-0">No unverified Financial Professionals found.</p>
+      </div>
+      {% endif %}
+   </div>
+</div>
+{% endblock %}

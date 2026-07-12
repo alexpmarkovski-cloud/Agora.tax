@@ -4,9 +4,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
    <h1>Referrals</h1>
    <div>
-      {% if user.cpauser and not user.cpauser.stripe_account_id %}
-      <a href="{% url 'onboard_cpa_stripe' %}" class="btn btn-warning me-2">Setup Payouts</a>
-      {% endif %}
+
       <a href="{% url 'create_referral' %}" class="btn btn-primary">Create New Referral</a>
    </div>
 </div>
@@ -18,7 +16,7 @@
          <select name="category" id="categoryFilter" class="form-select w-auto me-2" onchange="this.form.submit()">
             <option value="">All Products</option>
             {% for category in categories %}
-            <option value="{{ category.id }}" {% if selected_category_id==category.id %}selected{% endif %}>
+            <option value="{{ category.id }}" {% if selected_category_id == category.id %}selected{% endif %}>
                {{ category.name }}
             </option>
             {% endfor %}
@@ -33,7 +31,7 @@
          <tr>
             <th>ID</th>
             <th>CPA</th>
-            <th>Client Email</th>
+            <th>Client Contact</th>
             <th>Offer</th>
             <th>Status</th>
             <th>Gen Date</th>
@@ -44,8 +42,18 @@
          {% for referral in referrals %}
          <tr>
             <td>{{ referral.id }}</td>
-            <td>{{ referral.cpa.name }}</td>
-            <td>{{ referral.client_email }}</td>
+            <td>{{ referral.cpa.first_name }} {{ referral.cpa.last_name }}</td>
+            <td>
+                {% if referral.client_name %}
+                <strong>{{ referral.client_name }}</strong><br>
+                {% else %}
+                <span class="text-muted small"><em>No name</em></span><br>
+                {% endif %}
+                <span class="small text-muted">
+                    {% if referral.client_email %}Email: {{ referral.client_email }}<br>{% endif %}
+                    {% if referral.client_phone %}Phone: {{ referral.client_phone }}{% endif %}
+                </span>
+            </td>
             <td>
                {{ referral.offer.name }}
                {% if referral.referral_code %}

@@ -1,0 +1,358 @@
+{% extends 'api/shared/base.html' %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <!-- Dashboard Header -->
+        <div class="card border-0 shadow-sm p-4 mb-4 text-white" 
+             style="background: linear-gradient(135deg, hsl(220, 50%, 18%) 0%, hsl(220, 45%, 28%) 100%); border-radius: 16px;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div>
+                    <span class="badge bg-light text-dark px-3 py-1 mb-2 fw-semibold font-monospace text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                        Institution Portal
+                    </span>
+                    <h1 class="display-6 fw-bold mb-1">{{ company.name }}</h1>
+                    <p class="mb-0 text-white-50">Active Partner &bull; Integration: <span class="badge bg-secondary font-monospace">{{ company.integration_type }}</span></p>
+                </div>
+                <div class="mt-3 mt-md-0 d-flex gap-2 flex-wrap">
+                    <a href="{% url 'create_referral' %}" class="btn btn-outline-light fw-semibold shadow-sm border py-2.5 px-4" style="border-radius: 8px;">
+                        + New Client Referral
+                    </a>
+
+                    <a href="{% url 'create_offer' %}" class="btn btn-light fw-semibold text-dark shadow-sm border-0 py-2.5 px-4" style="border-radius: 8px;">
+                        + Publish New Offer
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard Summary -->
+        <div class="row g-4 mb-5">
+            <!-- Metric 1 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 12px; background: #fff;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold small">INCOMING LEADS</span>
+                        <div class="p-2 bg-light rounded text-primary"><i class="bi bi-person-fill"></i></div>
+                    </div>
+                    <h3 class="display-5 fw-bold text-dark mb-1">{{ referrals.count }}</h3>
+                    <p class="text-muted small mb-0">Total referral leads received from CPAs</p>
+                </div>
+            </div>
+            <!-- Metric 2 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 12px; background: #fff;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold small">CONVERTED LEADS</span>
+                        <div class="p-2 bg-light rounded text-success"><i class="bi bi-check-circle-fill"></i></div>
+                    </div>
+                    <h3 class="display-5 fw-bold text-dark mb-1">
+                        {{ converted_count }}
+                    </h3>
+                    <p class="text-muted small mb-0">Successful bank client conversions</p>
+                </div>
+            </div>
+            <!-- Metric 3 -->
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 p-4" style="border-radius: 12px; background: #fff;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted fw-semibold small">CONVERSION RATE</span>
+                        <div class="p-2 bg-light rounded text-warning"><i class="bi bi-graph-up"></i></div>
+                    </div>
+                    <h3 class="display-5 fw-bold text-dark mb-1">
+                        {{ conversion_rate }}%
+                    </h3>
+                    <p class="text-muted small mb-0">Partner pipeline conversion performance</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portal Tabs Section -->
+        <ul class="nav nav-pills nav-fill mb-4 p-1.5 bg-light rounded-3 shadow-sm border" id="portalTabs" role="tablist" style="border-radius: 12px;">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold py-2.5" id="received-tab" data-bs-toggle="tab" data-bs-target="#received-content" 
+                        type="button" role="tab" aria-controls="received-content" aria-selected="true" style="border-radius: 8px;">
+                    Leads Received (Referee)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-2.5" id="made-tab" data-bs-toggle="tab" data-bs-target="#made-content" 
+                        type="button" role="tab" aria-controls="made-content" aria-selected="false" style="border-radius: 8px;">
+                    Referrals Made (Referrer)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold py-2.5" id="offers-tab" data-bs-toggle="tab" data-bs-target="#offers-content" 
+                        type="button" role="tab" aria-controls="offers-content" aria-selected="false" style="border-radius: 8px;">
+                    Products & Offers
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="portalTabsContent">
+            <!-- TAB 1: LEADS RECEIVED -->
+            <div class="tab-pane fade show active" id="received-content" role="tabpanel" aria-labelledby="received-tab">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="fw-bold text-dark mb-0">Active Lead Submissions</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead style="background: hsl(220, 15%, 96%); border-bottom: 2px solid #eaedf1;">
+                                <tr>
+                                    <th class="px-4 text-muted fw-semibold py-3" style="font-size: 0.8rem;">REFERRAL ID</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">REFERRER</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">PRODUCT / OFFER</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">CLIENT CONTACT</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">STATUS</th>
+                                    <th class="text-muted fw-semibold py-3 text-end px-4" style="font-size: 0.8rem;">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in referrals %}
+                                <tr style="border-bottom: 1px solid #eaedf1;">
+                                    <td class="px-4 font-monospace fw-semibold text-dark">#{{ referral.id }}</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ referral.referrer_name }}</div>
+                                        <div class="text-muted small">{{ referral.referrer_company }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ referral.offer.name }}</div>
+                                        {% if referral.referral_code %}
+                                        <span class="badge bg-secondary font-monospace" style="font-size: 0.7rem; border-radius: 4px;">{{ referral.referral_code }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if referral.client_name %}
+                                        <div class="fw-bold text-dark mb-1">{{ referral.client_name }}</div>
+                                        {% else %}
+                                        <div class="text-muted small mb-1"><em>No name provided</em></div>
+                                        {% endif %}
+                                        
+                                        <div class="small">
+                                            {% if referral.client_email %}
+                                            <div class="text-dark"><span class="text-muted">Email:</span> {{ referral.client_email }}</div>
+                                            {% endif %}
+                                            {% if referral.client_phone %}
+                                            <div class="text-dark"><span class="text-muted">Phone:</span> {{ referral.client_phone }}</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if referral.client_state %}
+                                        <div class="text-muted small mt-1">Jurisdiction: <strong class="text-uppercase">{{ referral.client_state }}</strong></div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if referral.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark px-2.5 py-1.5 fw-semibold rounded-pill" style="font-size: 0.75rem;">Pending</span>
+                                        {% elif referral.status == 'CONVERTED' %}
+                                        <span class="badge bg-success px-2.5 py-1.5 fw-semibold rounded-pill" style="font-size: 0.75rem;">Converted</span>
+                                        {% elif referral.status == 'PAID' %}
+                                        <span class="badge bg-info text-dark px-2.5 py-1.5 fw-semibold rounded-pill" style="font-size: 0.75rem;">Paid</span>
+                                        {% elif referral.status == 'REJECTED' %}
+                                        <span class="badge bg-danger px-2.5 py-1.5 fw-semibold rounded-pill" style="font-size: 0.75rem;">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end px-4">
+                                        {% if referral.status == 'PENDING' %}
+                                        <div class="d-flex justify-content-end gap-1.5">
+                                            <!-- Approve Form -->
+                                            <form action="{% url 'financial_update_referral' referral.id %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="approve">
+                                                <button type="submit" class="btn btn-sm btn-outline-success fw-bold px-3 py-1.5" style="border-radius: 6px;">
+                                                    Convert
+                                                </button>
+                                            </form>
+                                            <!-- Reject Form -->
+                                            <form action="{% url 'financial_update_referral' referral.id %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="reject">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold px-3 py-1.5" style="border-radius: 6px;">
+                                                    Reject
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted small">Completed &bull; {{ referral.conversion_date|date:"M d"|default:"Processed" }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted mb-2"><i class="bi bi-inbox-fill" style="font-size: 2.5rem;"></i></div>
+                                        <h6 class="text-dark fw-bold">No Referrals Registered</h6>
+                                        <p class="text-muted mb-0 small">CPAs will start sending referrals once they select your offers.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: REFERRALS MADE -->
+            <div class="tab-pane fade" id="made-content" role="tabpanel" aria-labelledby="made-tab">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                        <h5 class="fw-bold text-dark mb-0">Referrals Made by Your Institution</h5>
+                        <form method="get" action="{% url 'financial_dashboard' %}" class="d-flex align-items-center">
+                            <label for="categoryFilter" class="me-2 fw-bold text-nowrap small text-muted">Filter:</label>
+                            <select name="category" id="categoryFilter" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                                <option value="">All Products</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if selected_category_id == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead style="background: hsl(220, 15%, 96%); border-bottom: 2px solid #eaedf1;">
+                                <tr>
+                                    <th class="px-4 text-muted fw-semibold py-3" style="font-size: 0.8rem;">REFERRAL ID</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">CLIENT CONTACT</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">OFFER</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">TARGET PROFESSIONAL</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">STATUS</th>
+                                    <th class="text-muted fw-semibold py-3 px-4" style="font-size: 0.8rem;">GEN DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for referral in referrals_made %}
+                                <tr style="border-bottom: 1px solid #eaedf1;">
+                                    <td class="px-4 font-monospace fw-semibold text-dark">#{{ referral.id }}</td>
+                                    <td>
+                                        {% if referral.client_name %}
+                                        <strong>{{ referral.client_name }}</strong><br>
+                                        {% else %}
+                                        <span class="text-muted small"><em>No name</em></span><br>
+                                        {% endif %}
+                                        <span class="small text-muted">
+                                            {% if referral.client_email %}Email: {{ referral.client_email }}<br>{% endif %}
+                                            {% if referral.client_phone %}Phone: {{ referral.client_phone }}{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ referral.offer.name }}
+                                        {% if referral.referral_code %}
+                                        <br>
+                                        <span class="badge bg-secondary font-monospace" style="font-size: 0.75rem;">{{ referral.referral_code }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if referral.offer.professional_name %}
+                                        <div class="text-dark fw-semibold">{{ referral.offer.professional_name }}</div>
+                                        {% endif %}
+                                        <div class="small text-muted">
+                                            {% if referral.offer.contact_email %}<i class="bi bi-envelope me-1"></i>{{ referral.offer.contact_email }}<br>{% endif %}
+                                            {% if referral.offer.contact_phone %}<i class="bi bi-telephone me-1"></i>{{ referral.offer.contact_phone }}<br>{% endif %}
+                                        </div>
+                                        <div class="small text-muted">{{ referral.offer.product.company.name }}{{ referral.offer.product.legal_company.name }}</div>
+                                    </td>
+                                    <td>
+                                        {% if referral.status == 'PENDING' %}
+                                        <span class="badge bg-warning text-dark px-2 py-1" style="font-size: 0.75rem;">Pending</span>
+                                        {% elif referral.status == 'CONVERTED' %}
+                                        <span class="badge bg-success px-2 py-1" style="font-size: 0.75rem;">Converted</span>
+                                        {% elif referral.status == 'PAID' %}
+                                        <span class="badge bg-info text-dark px-2 py-1" style="font-size: 0.75rem;">Paid</span>
+                                        {% elif referral.status == 'REJECTED' %}
+                                        <span class="badge bg-danger px-2 py-1" style="font-size: 0.75rem;">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 text-muted small">{{ referral.gen_date|date:"M d, Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted mb-2"><i class="bi bi-send-fill" style="font-size: 2.5rem; color: hsl(220, 30%, 75%);"></i></div>
+                                        <h6 class="text-dark fw-bold">No Referrals Made Yet</h6>
+                                        <p class="text-muted mb-3 small">You haven't recommended any clients to other portal partners.</p>
+                                        <a href="{% url 'create_referral' %}" class="btn btn-sm btn-primary">Create Your First Referral</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: OFFERS -->
+            <div class="tab-pane fade" id="offers-content" role="tabpanel" aria-labelledby="offers-tab">
+                <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-0">
+                        <h5 class="fw-bold text-dark mb-0">Product Recommendations (Offers)</h5>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'create_offer' %}" class="btn btn-sm btn-primary fw-semibold px-3 py-2" style="border-radius: 6px;">
+                                + Add Recommendation (Offer)
+                            </a>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead style="background: hsl(220, 15%, 96%); border-bottom: 2px solid #eaedf1;">
+                                <tr>
+                                    <th class="px-4 text-muted fw-semibold py-3" style="font-size: 0.8rem;">OFFER NAME</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">PRODUCT TYPE</th>
+
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">CLIENT BONUS SUMMARY</th>
+                                    <th class="text-muted fw-semibold py-3" style="font-size: 0.8rem;">STATUS</th>
+                                    <th class="text-muted fw-semibold py-3 text-end px-4" style="font-size: 0.8rem;">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offer in offers %}
+                                <tr style="border-bottom: 1px solid #eaedf1;">
+                                    <td class="px-4 fw-bold text-dark">{{ offer.name }}</td>
+                                    <td class="fw-semibold text-muted">{{ offer.product.name }}</td>
+
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ offer.client_bonus_summary }}</div>
+                                    </td>
+                                    <td>
+                                        {% if offer.is_active %}
+                                        <span class="badge bg-success px-2 py-1" style="font-size: 0.75rem;">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary px-2 py-1" style="font-size: 0.75rem;">Disabled</span>
+                                        {% endif %}
+                                        {% if offer.is_featured %}
+                                        <span class="badge bg-primary px-2 py-1" style="font-size: 0.75rem;">Featured</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <a href="{% url 'edit_offer' offer.id %}" class="btn btn-sm btn-outline-secondary px-3 py-1.5 fw-bold mb-1 d-block" style="border-radius: 6px;">
+                                            Edit Details
+                                        </a>
+                                        <a href="{% url 'contact_support' %}?inquiry_type=Offer+Inquiry" class="btn btn-sm btn-outline-danger px-3 py-1.5 fw-bold d-block" style="border-radius: 6px;" onclick="return confirm('Please contact support to delete a product recommendation. Proceed to contact support?');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="text-muted mb-2"><i class="bi bi-tags-fill" style="font-size: 2.5rem;"></i></div>
+                                        <h6 class="text-dark fw-bold">No Active Offers</h6>
+                                        <p class="text-muted mb-0 small">Create your first bank promo offer to start receiving referrals.</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -12,8 +12,10 @@
                     {% csrf_token %}
                     
                     {% for field in form %}
-                    <div class="mb-3">
+                    <div class="mb-3 {% if field.name == 'website' %}d-none{% endif %}">
+                        {% if field.name != 'website' %}
                         <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                        {% endif %}
                         {{ field }}
                         {% if field.help_text %}
                         <div class="form-text">{{ field.help_text }}</div>

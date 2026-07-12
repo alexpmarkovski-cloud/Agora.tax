@@ -7,8 +7,8 @@
       <p class="lead text-muted">Browse the master list of all available offers for your clients.</p>
    </div>
    <div class="col-md-4 text-md-end">
-      <a href="{% url 'storefront' %}" class="btn btn-outline-secondary shadow-sm">
-         <i class="bi bi-arrow-left"></i> Back to Storefront
+      <a href="{% url 'landing_page' %}" class="btn btn-outline-secondary shadow-sm">
+         <i class="bi bi-arrow-left"></i> Back
       </a>
    </div>
 </div>
@@ -23,7 +23,7 @@
                   <th>Product</th>
                   <th>Offer Name</th>
                   <th>Client Bonus</th>
-                  <th>Your Payout</th>
+
                   <th class="text-end pe-4">Action</th>
                </tr>
             </thead>
@@ -39,7 +39,7 @@
                      {% endif %}
                   </td>
                   <td>{{ offer.client_bonus_summary }}</td>
-                  <td class="text-success fw-bold">${{ offer.cpa_payout }}</td>
+
                   <td class="text-end pe-4">
                      <a href="{% url 'create_referral' %}?offer={{ offer.id }}"
                         class="btn btn-sm btn-primary">Select</a>
@@ -47,7 +47,7 @@
                </tr>
                {% empty %}
                <tr>
-                  <td colspan="6" class="text-center py-5">
+                  <td colspan="5" class="text-center py-5">
                      <h5 class="text-muted mb-0">No active offers found.</h5>
                   </td>
                </tr>

@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/alexandermarkovski/Coding/OG Agora/.venv"
+VIRTUAL_ENV="/Users/alexandermarkovski/Coding/OG_Agora/.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

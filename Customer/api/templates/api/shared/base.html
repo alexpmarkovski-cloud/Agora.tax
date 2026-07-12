@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agora Referral System</title>
+    <title>Agora.tax Referral System</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
@@ -16,58 +17,88 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm py-3" style="background-color: hsl(220, 45%, 12%) !important; border-bottom: 1px solid hsl(220, 30%, 20%);">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'storefront' %}">Agora</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            <a class="navbar-brand fw-bold font-monospace d-flex align-items-center gap-2" href="/">
+                <img src="{% static 'api/images/logo.png' %}" alt="Agora.tax Logo" style="height: 36px; width: auto; border-radius: 6px; object-fit: contain;">
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto align-items-lg-center">
+                    {% if user.is_authenticated %}
+                        {% if user.financial_user %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3 fw-semibold text-info" href="{% url 'financial_dashboard' %}">Institution Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'create_referral' %}">New Referral</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'create_offer' %}">Publish Offer</a>
+                            </li>
+                        {% elif user.legal_user %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3 fw-semibold text-warning" href="{% url 'legal_dashboard' %}">Legal Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'create_referral' %}">New Referral</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'create_offer' %}">Publish Offer</a>
+                            </li>
+                        {% elif user.cpauser %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3 fw-semibold text-primary" href="{% url 'cpa_dashboard' %}">My Referrals</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'create_referral' %}">New Referral</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link px-3" href="{% url 'offer_list' %}">Offers</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'storefront' %}">Storefront</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'offer_list' %}">Offers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cpa_dashboard' %}">My Referrals</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'create_referral' %}">Create New</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contact_support' %}">Contact Support</a>
+                        <a class="nav-link px-3" href="{% url 'contact_support' %}">Contact Support</a>
                     </li>
                 </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/admin/">Admin</a>
-                    </li>
-                    {% if user.is_staff %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'referral_list' %}">All Referrals (Admin)</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cpa_verifier' %}">CPA Verifier</a>
-                    </li>
+                <ul class="navbar-nav align-items-lg-center gap-1">
+                    {% if user.is_staff or user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link px-3 text-warning-emphasis" href="/admin/">Django Admin</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3 fw-semibold text-warning" href="{% url 'referral_list' %}">All Referrals (Admin)</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'cpa_verifier' %}">CPA Verifier</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'financial_pro_verifier' %}">Fin Pro Verifier</a>
+                        </li>
                     {% endif %}
                     {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'edit_profile' %}">Edit Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <form action="{% url 'logout' %}" method="post" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="nav-link btn btn-link"
-                                style="text-decoration: none;">Logout</button>
-                        </form>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link px-3" href="{% url 'edit_profile' %}">Profile</a>
+                        </li>
+                        <li class="nav-item ms-lg-2">
+                            <form action="{% url 'account_logout' %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm px-3 fw-semibold rounded-pill"
+                                    style="border-color: rgba(255,255,255,0.2);">Logout</button>
+                            </form>
+                        </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    </li>
+                        <li class="nav-item ms-lg-2">
+                            <a class="btn btn-primary btn-sm px-4 fw-semibold rounded-pill" href="{% url 'account_login' %}" 
+                               style="background: linear-gradient(135deg, hsl(210, 100%, 60%) 0%, hsl(220, 100%, 50%) 100%); border: none;">
+                               Partner Login
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
@@ -95,6 +126,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
         crossorigin="anonymous"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>
