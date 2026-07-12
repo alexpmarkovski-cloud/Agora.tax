@@ -1,0 +1,11 @@
+name = "og-agora-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[vars]
+DJANGO_APP_BASE_URL = "http://localhost:8000"
