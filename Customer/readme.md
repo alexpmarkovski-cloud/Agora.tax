@@ -1,4 +1,4 @@
-# Agora Partner Portal - Dummy/Demo Version
+# Agora Partner Portal - Demo Version
 
 This repository contains a stripped-down, demonstration version of the Agora Partner Portal. It is intended to showcase the core functionality of the platform, including referral tracking, user dashboards, and role-based access for CPAs and Financial Professionals.
 
