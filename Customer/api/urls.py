@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from . import views
 
 urlpatterns = [
@@ -29,4 +30,11 @@ urlpatterns = [
     path('verifier/financial/approve/<int:pk>/', views.approve_financial_pro, name='approve_financial_pro'),
     path('verifier/financial/reject/<int:pk>/', views.reject_financial_pro, name='reject_financial_pro'),
     path('verifier/financial/auto/<int:pk>/', views.auto_verify_financial_pro, name='auto_verify_financial_pro'),
+
+    # Legal / Footer Routes
+    path('legal/terms-of-service/', TemplateView.as_view(template_name='api/legal_docs/tos.html'), name='tos'),
+    path('legal/privacy-policy/', TemplateView.as_view(template_name='api/legal_docs/privacy_policy.html'), name='privacy_policy'),
+    path('legal/platform-agreement/', TemplateView.as_view(template_name='api/legal_docs/platform_agreement.html'), name='platform_agreement'),
+    path('legal/cookie-policy/', TemplateView.as_view(template_name='api/legal_docs/cookie_policy.html'), name='cookie_policy'),
+    path('legal/acceptable-use/', TemplateView.as_view(template_name='api/legal_docs/acceptable_use.html'), name='acceptable_use'),
 ]
