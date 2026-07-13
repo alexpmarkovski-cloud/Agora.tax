@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-)(%z3!cqpg3$5p(q548&-z+t^f1#3-iv3292)n7_z+f(#es!52
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://*.agora.tax', 'http://*.agora.tax']
+ALLOWED_HOSTS = ['*', '.railway.app']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'https://*.agora.tax', 'http://*.agora.tax', 'https://*.railway.app']
 
 
 # Application definition
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -81,6 +82,7 @@ WSGI_APPLICATION = 'customer_db.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 import os
+import dj_database_url
 
 DB_NAME = os.environ.get('DB_NAME', 'tax_project')
 DB_USER = os.environ.get('DB_USER', 'alexandermarkovski')
@@ -88,16 +90,22 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
 DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
 DB_PORT = os.environ.get('DB_PORT', '5432')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
-        'HOST': DB_HOST,
-        'PORT': DB_PORT,
+# Use DATABASE_URL from environment if available (like on Railway), otherwise fallback to local setup
+if 'DATABASE_URL' in os.environ:
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=False)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+        }
+    }
 
 
 # Password validation
@@ -135,6 +143,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
